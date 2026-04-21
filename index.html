@@ -4,1175 +4,284 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leivas AI Command Center</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg: #0a0e17;
-    --surface: #111827;
-    --surface2: #1a2235;
-    --surface3: #222d42;
-    --border: #1e293b;
-    --accent: #3b82f6;
-    --accent-glow: rgba(59,130,246,0.15);
-    --green: #22c55e;
-    --red: #ef4444;
-    --orange: #f59e0b;
-    --purple: #a855f7;
-    --cyan: #06b6d4;
-    --text: #e2e8f0;
-    --text-dim: #94a3b8;
-    --text-muted: #64748b;
-    --radius: 12px;
+    --bg: #0a0e17; --surface: #111827; --surface2: #1a2235; --surface3: #222d42;
+    --border: #1e293b; --accent: #3b82f6; --accent-glow: rgba(59,130,246,0.15);
+    --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --purple: #a855f7; --cyan: #06b6d4;
+    --text: #e2e8f0; --text-dim: #94a3b8; --text-muted: #64748b; --radius: 12px;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ── Header ── */
-  .header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 28px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(59,130,246,0.04) 0%, transparent 100%);
-  }
-  .header-left { display: flex; align-items: center; gap: 14px; }
-  .logo {
-    width: 38px; height: 38px;
-    background: linear-gradient(135deg, var(--accent), var(--purple));
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700; color: white;
-  }
-  .header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
-  .header-sub { font-size: 12px; color: var(--text-dim); }
-  .status-row { display: flex; gap: 10px; align-items: center; }
-  .badge {
-    display: flex; align-items: center; gap: 6px;
-    padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
-    background: var(--surface2); border: 1px solid var(--border);
-  }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); }
-  .dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .dot.off { background: var(--red); box-shadow: 0 0 6px var(--red); }
-
-  /* ── Nav tabs ── */
-  .nav {
-    display: flex; border-bottom: 1px solid var(--border); background: var(--surface);
-    padding: 0 28px;
-  }
-  .nav-tab {
-    padding: 12px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted);
-    cursor: pointer; border: none; background: none;
-    border-bottom: 2px solid transparent; transition: all 0.15s;
-  }
-  .nav-tab:hover { color: var(--text-dim); }
-  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* ── Pages ── */
-  .page { display: none; height: calc(100vh - 105px); overflow: hidden; }
-  .page.active { display: flex; }
-
-  /* ── WORKSPACE PAGE ── */
-  .workspace {
-    display: grid; grid-template-columns: 280px 1fr 380px;
-    width: 100%; height: 100%;
-  }
-
-  /* Sidebar */
-  .sidebar {
-    border-right: 1px solid var(--border); display: flex; flex-direction: column;
-    background: var(--surface);
-  }
-  .sidebar-section { padding: 16px; border-bottom: 1px solid var(--border); }
-  .sidebar-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 10px; }
-
-  .quick-action {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 8px; cursor: pointer;
-    border: none; background: none; color: var(--text); width: 100%;
-    text-align: left; font-size: 13px; transition: background 0.12s;
-  }
-  .quick-action:hover { background: var(--surface2); }
-  .quick-action .icon {
-    width: 32px; height: 32px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; flex-shrink: 0;
-  }
-  .quick-action .label { font-weight: 500; }
-  .quick-action .desc { font-size: 11px; color: var(--text-muted); }
-
-  /* Task history in sidebar */
-  .task-item {
-    padding: 10px 16px; border-bottom: 1px solid var(--border);
-    cursor: pointer; transition: background 0.12s;
-  }
-  .task-item:hover { background: var(--surface2); }
-  .task-item.active { background: var(--accent-glow); border-left: 3px solid var(--accent); }
-  .task-item-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .task-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: flex; gap: 8px; }
-  .task-status {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600;
-  }
-  .task-status.running { background: rgba(59,130,246,0.15); color: var(--accent); }
-  .task-status.done { background: rgba(34,197,94,0.15); color: var(--green); }
-  .task-status.error { background: rgba(239,68,68,0.15); color: var(--red); }
-
-  /* Main content area */
-  .main-content {
-    display: flex; flex-direction: column; overflow: hidden;
-  }
-
-  /* Task output area */
-  .task-output {
-    flex: 1; overflow-y: auto; padding: 24px 28px;
-    font-size: 14px; line-height: 1.7;
-  }
-  .task-output pre {
-    background: var(--surface2); padding: 16px; border-radius: 8px;
-    overflow-x: auto; font-size: 13px; line-height: 1.5;
-    border: 1px solid var(--border); margin: 12px 0;
-  }
-  .task-output h3 { margin: 16px 0 8px; font-size: 15px; }
-  .task-output p { margin-bottom: 8px; }
-
-  .welcome-screen {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; text-align: center; padding: 40px;
-  }
-  .welcome-screen .big-icon { font-size: 48px; margin-bottom: 16px; }
-  .welcome-screen h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-  .welcome-screen p { color: var(--text-dim); font-size: 14px; max-width: 400px; }
-
-  /* Input bar */
-  .input-bar {
-    padding: 16px 28px; border-top: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .input-row { display: flex; gap: 8px; }
-  .input-field {
-    flex: 1; padding: 12px 16px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--bg);
-    color: var(--text); font-size: 14px; font-family: inherit;
-    outline: none; resize: none; min-height: 46px; max-height: 150px;
-  }
-  .input-field:focus { border-color: var(--accent); }
-  .input-field::placeholder { color: var(--text-muted); }
-  .send-btn {
-    padding: 12px 20px; border-radius: 12px; border: none;
-    background: var(--accent); color: white; font-size: 14px;
-    font-weight: 600; cursor: pointer; transition: opacity 0.15s;
-    white-space: nowrap;
-  }
-  .send-btn:hover { opacity: 0.85; }
-  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .model-bar {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-  }
-  .model-bar label { font-size: 11px; color: var(--text-muted); }
-  .model-bar select {
-    padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text); font-size: 12px; outline: none;
-  }
-  .model-bar .chip {
-    font-size: 10px; padding: 3px 8px; border-radius: 4px;
-    background: var(--surface2); color: var(--text-muted); cursor: pointer;
-  }
-  .model-bar .chip:hover { color: var(--text); background: var(--surface3); }
-  .model-bar .chip.active { background: var(--accent-glow); color: var(--accent); }
-
-  /* Right panel: chat */
-  .chat-panel {
-    border-left: 1px solid var(--border); display: flex; flex-direction: column;
-  }
-  .chat-header {
-    padding: 14px 16px; border-bottom: 1px solid var(--border);
-    background: var(--surface); font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .chat-messages {
-    flex: 1; overflow-y: auto; padding: 16px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  .chat-msg {
-    max-width: 88%; padding: 10px 14px; border-radius: 12px;
-    font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
-  }
-  .chat-msg.user {
-    align-self: flex-end; background: var(--accent); color: white;
-    border-bottom-right-radius: 4px;
-  }
-  .chat-msg.assistant {
-    align-self: flex-start; background: var(--surface2); color: var(--text);
-    border-bottom-left-radius: 4px;
-  }
-  .chat-msg.system {
-    align-self: center; background: none; color: var(--text-muted);
-    font-size: 11px; text-align: center;
-  }
-  .chat-input-area {
-    padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface);
-  }
-  .chat-input-row { display: flex; gap: 8px; }
-  .chat-input {
-    flex: 1; padding: 8px 12px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--bg);
-    color: var(--text); font-size: 13px; font-family: inherit;
-    outline: none; resize: none; min-height: 38px; max-height: 100px;
-  }
-  .chat-input:focus { border-color: var(--accent); }
-  .chat-send {
-    padding: 8px 14px; border-radius: 10px; border: none;
-    background: var(--accent); color: white; font-size: 13px;
-    font-weight: 600; cursor: pointer;
-  }
-  .chat-send:disabled { opacity: 0.35; }
-
-  /* ── TRIAGE PAGE ── */
-  .triage-page { display: flex; flex-direction: column; width: 100%; }
-  .triage-stats {
-    display: flex; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border);
-  }
-  .triage-stat {
-    flex: 1; padding: 14px 20px; background: var(--surface);
-    display: flex; flex-direction: column; gap: 2px;
-  }
-  .triage-stat .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .triage-stat .val { font-size: 22px; font-weight: 700; }
-  .triage-stat .sub { font-size: 11px; color: var(--text-dim); }
-
-  .triage-toolbar {
-    display: flex; align-items: center; gap: 8px; padding: 10px 20px;
-    border-bottom: 1px solid var(--border); background: var(--surface);
-    overflow-x: auto;
-  }
-  .filter-chip {
-    padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    cursor: pointer; border: none; background: transparent;
-    color: var(--text-dim); white-space: nowrap; transition: all 0.12s;
-  }
-  .filter-chip:hover { background: var(--surface2); color: var(--text); }
-  .filter-chip.active { background: var(--accent); color: white; }
-  .filter-count {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 16px; height: 16px; border-radius: 8px;
-    background: rgba(255,255,255,0.15); font-size: 9px; padding: 0 4px; margin-left: 4px;
-  }
-  .triage-list { flex: 1; overflow-y: auto; }
-  .email-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 20px; border-bottom: 1px solid var(--border);
-    cursor: pointer; transition: background 0.1s;
-  }
-  .email-row:hover { background: var(--surface); }
-  .email-icon {
-    width: 34px; height: 34px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
-  }
-  .email-icon.TO_RESPOND { background: rgba(239,68,68,0.15); }
-  .email-icon.ACTION_NEEDED { background: rgba(245,158,11,0.15); }
-  .email-icon.MEETING { background: rgba(59,130,246,0.15); }
-  .email-icon.DEAL_OM { background: rgba(168,85,247,0.15); }
-  .email-icon.INVESTOR { background: rgba(34,197,94,0.15); }
-  .email-icon.FYI { background: rgba(59,130,246,0.1); }
-  .email-icon.LOW_PRIORITY { background: rgba(100,116,139,0.15); }
-  .email-icon.UNCLASSIFIED { background: rgba(100,116,139,0.1); }
-  .email-body { flex: 1; min-width: 0; }
-  .email-sender { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .email-subj { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-  .email-tags { display: flex; gap: 6px; margin-top: 3px; }
-  .email-tag {
-    font-size: 9px; padding: 1px 6px; border-radius: 3px;
-    background: var(--surface2); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;
-  }
-  .email-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
-
-  .triage-log-bar {
-    padding: 8px 20px; font-size: 11px; color: var(--text-muted);
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .triage-log-bar input {
-    flex: 1; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text); font-size: 11px; font-family: monospace; outline: none;
-  }
-  .sm-btn {
-    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--surface2); color: var(--text-dim); font-size: 11px; cursor: pointer;
-  }
-  .sm-btn:hover { border-color: var(--accent); color: var(--text); }
-
-  /* ── MODELS PAGE ── */
-  .models-page { flex-direction: column; width: 100%; }
-  .models-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px; padding: 24px 28px; overflow-y: auto;
-  }
-  .model-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; transition: border-color 0.15s;
-  }
-  .model-card:hover { border-color: var(--accent); }
-  .model-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .model-card-name { font-size: 15px; font-weight: 700; }
-  .model-card-badge {
-    font-size: 10px; padding: 3px 8px; border-radius: 4px;
-    background: var(--accent-glow); color: var(--accent); font-weight: 700;
-  }
-  .model-card-stats { display: flex; gap: 16px; }
-  .model-card-stat { }
-  .model-card-stat .val { font-size: 14px; font-weight: 600; }
-  .model-card-stat .label { font-size: 10px; color: var(--text-muted); }
-
-  /* ── Empty / loading ── */
-  .empty {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 40px; color: var(--text-muted); text-align: center; gap: 8px;
-  }
-  .empty .icon { font-size: 32px; margin-bottom: 8px; }
-  .empty .title { font-size: 14px; font-weight: 600; color: var(--text-dim); }
-  .empty .desc { font-size: 12px; }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  /* Markdown in output */
-  .task-output ul, .task-output ol { margin-left: 20px; margin-bottom: 8px; }
-  .task-output li { margin-bottom: 4px; }
-  .task-output strong { font-weight: 700; }
-  .task-output code { background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-
-  /* Copy button */
-  .copy-btn {
-    position: absolute; top: 8px; right: 8px;
-    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--text-muted); font-size: 11px;
-    cursor: pointer; opacity: 0; transition: opacity 0.15s;
-  }
-  .task-output pre:hover .copy-btn { opacity: 1; }
-
-  /* Job cards */
-  .job-row {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 20px; border-bottom: 1px solid var(--border);
-  }
-
-  /* Responsive */
-  @media (max-width: 1100px) {
-    .workspace { grid-template-columns: 240px 1fr; }
-    .chat-panel { display: none; }
-  }
-  @media (max-width: 768px) {
-    .workspace { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .header { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,rgba(59,130,246,0.04) 0%,transparent 100%); }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .logo { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),var(--purple)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; color:white; }
+  .header h1 { font-size:17px; font-weight:600; letter-spacing:-0.3px; }
+  .header-sub { font-size:11px; color:var(--text-dim); }
+  .status-row { display:flex; gap:8px; align-items:center; }
+  .badge { display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:16px; font-size:10px; font-weight:500; background:var(--surface2); border:1px solid var(--border); }
+  .dot { width:6px; height:6px; border-radius:50%; }
+  .dot.on { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .dot.off { background:var(--red); box-shadow:0 0 6px var(--red); }
+  .nav { display:flex; border-bottom:1px solid var(--border); background:var(--surface); padding:0 24px; }
+  .nav-tab { padding:11px 18px; font-size:12px; font-weight:600; color:var(--text-muted); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; transition:all 0.15s; }
+  .nav-tab:hover { color:var(--text-dim); }
+  .nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .page { display:none; height:calc(100vh - 97px); overflow:hidden; }
+  .page.active { display:flex; }
+  .overview { display:flex; flex-direction:column; width:100%; overflow-y:auto; }
+  .stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--border); border-bottom:1px solid var(--border); }
+  .stat-card { padding:16px 20px; background:var(--surface); }
+  .stat-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+  .stat-value { font-size:26px; font-weight:700; margin-top:2px; }
+  .stat-sub { font-size:11px; color:var(--text-dim); margin-top:2px; }
+  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid var(--border); }
+  .chart-card { padding:20px; border-right:1px solid var(--border); }
+  .chart-card:last-child { border-right:none; }
+  .chart-title { font-size:13px; font-weight:600; margin-bottom:12px; }
+  .chart-wrap { position:relative; height:220px; }
+  .activity-section { padding:20px 24px; }
+  .activity-title { font-size:13px; font-weight:600; margin-bottom:12px; }
+  .activity-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .activity-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+  .activity-card-title { font-size:12px; font-weight:600; margin-bottom:8px; color:var(--text-dim); }
+  .activity-item { font-size:12px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+  .activity-item:last-child { border-bottom:none; }
+  .workspace { display:grid; grid-template-columns:260px 1fr 360px; width:100%; height:100%; }
+  .sidebar { border-right:1px solid var(--border); display:flex; flex-direction:column; background:var(--surface); overflow-y:auto; }
+  .sidebar-section { padding:14px; border-bottom:1px solid var(--border); }
+  .sidebar-label { font-size:9px; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-muted); margin-bottom:8px; }
+  .quick-action { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:7px; cursor:pointer; border:none; background:none; color:var(--text); width:100%; text-align:left; font-size:12px; transition:background 0.12s; }
+  .quick-action:hover { background:var(--surface2); }
+  .qa-icon { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .qa-label { font-weight:500; }
+  .qa-desc { font-size:10px; color:var(--text-muted); }
+  .task-item { padding:8px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; }
+  .task-item:hover { background:var(--surface2); }
+  .task-item.active { background:var(--accent-glow); border-left:3px solid var(--accent); }
+  .task-item-title { font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .task-item-meta { font-size:10px; color:var(--text-muted); margin-top:2px; display:flex; gap:6px; }
+  .task-status { display:inline-flex; align-items:center; gap:3px; font-size:9px; padding:1px 5px; border-radius:3px; font-weight:600; }
+  .task-status.running { background:rgba(59,130,246,0.15); color:var(--accent); }
+  .task-status.done { background:rgba(34,197,94,0.15); color:var(--green); }
+  .task-status.error { background:rgba(239,68,68,0.15); color:var(--red); }
+  .main-content { display:flex; flex-direction:column; overflow:hidden; }
+  .task-output { flex:1; overflow-y:auto; padding:20px 24px; font-size:13px; line-height:1.7; }
+  .welcome-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding:40px; }
+  .welcome-screen .big-icon { font-size:44px; margin-bottom:14px; }
+  .welcome-screen h2 { font-size:18px; font-weight:600; margin-bottom:6px; }
+  .welcome-screen p { color:var(--text-dim); font-size:13px; max-width:380px; }
+  .welcome-btn { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); cursor:pointer; font-size:12px; }
+  .welcome-btn:hover { border-color:var(--accent); }
+  .input-bar { padding:14px 24px; border-top:1px solid var(--border); background:var(--surface); }
+  .input-row { display:flex; gap:8px; }
+  .input-field { flex:1; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; outline:none; resize:none; min-height:42px; max-height:140px; }
+  .input-field:focus { border-color:var(--accent); }
+  .input-field::placeholder { color:var(--text-muted); }
+  .send-btn { padding:10px 18px; border-radius:10px; border:none; background:var(--accent); color:white; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .send-btn:hover { opacity:0.85; }
+  .send-btn:disabled { opacity:0.35; }
+  .model-bar { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .model-bar label { font-size:10px; color:var(--text-muted); }
+  .model-bar select { padding:3px 6px; border-radius:5px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; outline:none; }
+  .chip { font-size:9px; padding:2px 7px; border-radius:4px; background:var(--surface2); color:var(--text-muted); cursor:pointer; }
+  .chip:hover { color:var(--text); }
+  .chip.active { background:var(--accent-glow); color:var(--accent); }
+  .chat-panel { border-left:1px solid var(--border); display:flex; flex-direction:column; }
+  .chat-header { padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface); font-size:12px; font-weight:600; }
+  .chat-messages { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .chat-msg { max-width:88%; padding:8px 12px; border-radius:10px; font-size:12px; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+  .chat-msg.user { align-self:flex-end; background:var(--accent); color:white; border-bottom-right-radius:3px; }
+  .chat-msg.assistant { align-self:flex-start; background:var(--surface2); border-bottom-left-radius:3px; }
+  .chat-msg.system { align-self:center; background:none; color:var(--text-muted); font-size:10px; }
+  .chat-input-area { padding:10px 14px; border-top:1px solid var(--border); background:var(--surface); }
+  .chat-input-row { display:flex; gap:6px; }
+  .chat-input { flex:1; padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:12px; font-family:inherit; outline:none; resize:none; min-height:34px; }
+  .chat-send { padding:7px 12px; border-radius:8px; border:none; background:var(--accent); color:white; font-size:12px; font-weight:600; cursor:pointer; }
+  .chat-send:disabled { opacity:0.35; }
+  .triage-page { display:flex; flex-direction:column; width:100%; }
+  .triage-stats { display:flex; gap:1px; background:var(--border); border-bottom:1px solid var(--border); }
+  .triage-stat { flex:1; padding:12px 18px; background:var(--surface); }
+  .triage-stat .label { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+  .triage-stat .val { font-size:20px; font-weight:700; }
+  .triage-stat .sub { font-size:10px; color:var(--text-dim); }
+  .triage-toolbar { display:flex; align-items:center; gap:6px; padding:8px 18px; border-bottom:1px solid var(--border); background:var(--surface); overflow-x:auto; }
+  .filter-chip { padding:4px 10px; border-radius:5px; font-size:10px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text-dim); white-space:nowrap; }
+  .filter-chip:hover { background:var(--surface2); color:var(--text); }
+  .filter-chip.active { background:var(--accent); color:white; }
+  .filter-count { display:inline-flex; min-width:14px; height:14px; border-radius:7px; background:rgba(255,255,255,0.15); font-size:8px; padding:0 3px; margin-left:3px; align-items:center; justify-content:center; }
+  .triage-list { flex:1; overflow-y:auto; }
+  .email-row { display:flex; align-items:center; gap:10px; padding:10px 18px; border-bottom:1px solid var(--border); cursor:pointer; }
+  .email-row:hover { background:var(--surface); }
+  .email-icon { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .email-icon.TO_RESPOND { background:rgba(239,68,68,0.15); }
+  .email-icon.ACTION_NEEDED { background:rgba(245,158,11,0.15); }
+  .email-icon.MEETING { background:rgba(59,130,246,0.15); }
+  .email-icon.DEAL_OM { background:rgba(168,85,247,0.15); }
+  .email-icon.INVESTOR { background:rgba(34,197,94,0.15); }
+  .email-icon.FYI { background:rgba(59,130,246,0.1); }
+  .email-icon.LOW_PRIORITY { background:rgba(100,116,139,0.15); }
+  .email-icon.UNCLASSIFIED { background:rgba(100,116,139,0.1); }
+  .email-body { flex:1; min-width:0; }
+  .email-sender { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .email-subj { font-size:11px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .email-tags { display:flex; gap:5px; margin-top:2px; }
+  .email-tag { font-size:8px; padding:1px 5px; border-radius:3px; background:var(--surface2); color:var(--text-muted); text-transform:uppercase; }
+  .email-time { font-size:10px; color:var(--text-muted); flex-shrink:0; }
+  .triage-log-bar { padding:6px 18px; font-size:10px; color:var(--text-muted); background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px; }
+  .triage-log-bar input { flex:1; padding:3px 6px; border-radius:5px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:10px; font-family:monospace; outline:none; }
+  .sm-btn { padding:3px 8px; border-radius:5px; border:1px solid var(--border); background:var(--surface2); color:var(--text-dim); font-size:10px; cursor:pointer; }
+  .sm-btn:hover { border-color:var(--accent); color:var(--text); }
+  .models-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; padding:20px 24px; overflow-y:auto; }
+  .model-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+  .model-card:hover { border-color:var(--accent); }
+  .model-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .model-card-name { font-size:14px; font-weight:700; }
+  .model-card-badge { font-size:9px; padding:2px 7px; border-radius:4px; background:var(--accent-glow); color:var(--accent); font-weight:700; }
+  .model-card-stats { display:flex; gap:14px; }
+  .model-card-stat .val { font-size:13px; font-weight:600; }
+  .model-card-stat .label { font-size:9px; color:var(--text-muted); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px; width:420px; max-width:90vw; }
+  .modal h3 { font-size:15px; margin-bottom:14px; }
+  .modal label { font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px; }
+  .modal input { width:100%; padding:7px 10px; border-radius:7px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:12px; font-family:monospace; outline:none; margin-bottom:10px; }
+  .modal .hint { font-size:10px; color:var(--text-muted); margin-top:-6px; margin-bottom:10px; }
+  .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; color:var(--text-muted); text-align:center; gap:6px; }
+  .empty .icon { font-size:28px; }
+  .empty .title { font-size:13px; font-weight:600; color:var(--text-dim); }
+  .spinner { display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  @media (max-width:1100px) { .workspace { grid-template-columns:220px 1fr; } .chat-panel { display:none; } .charts-row { grid-template-columns:1fr; } .activity-grid { grid-template-columns:1fr 1fr; } .stats-grid { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:768px) { .workspace { grid-template-columns:1fr; } .sidebar { display:none; } .activity-grid { grid-template-columns:1fr; } .stats-grid { grid-template-columns:repeat(2,1fr); } }
 </style>
 </head>
 <body>
+<div class="header"><div class="header-left"><div class="logo">L</div><div><h1>Leivas AI Command Center</h1><div class="header-sub">Local Ollama Workspace</div></div></div><div class="status-row"><div class="badge"><span class="dot" id="ollamaStatus"></span> <span id="ollamaStatusText">...</span></div><div class="badge" id="modelCountBadge">—</div><div class="badge" id="lastTriageBadge">—</div><div class="badge" style="cursor:pointer" onclick="showSettings()">⚙️</div></div></div>
+<div class="nav"><button class="nav-tab active" onclick="switchPage('overview',this)">📊 Overview</button><button class="nav-tab" onclick="switchPage('workspace',this)">⚡ Workspace</button><button class="nav-tab" onclick="switchPage('triage',this)">📨 Triage</button><button class="nav-tab" onclick="switchPage('jobs',this)">⏰ Jobs</button><button class="nav-tab" onclick="switchPage('models',this)">🧠 Models</button></div>
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)this.style.display='none'"><div class="modal"><h3>Settings</h3><label>Ollama URL</label><input id="settingsOllamaUrl"><div class="hint">Tailscale: http://100.x.x.x:11434</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="sm-btn" onclick="document.getElementById('settingsModal').style.display='none'">Cancel</button><button class="send-btn" style="padding:7px 14px;font-size:12px" onclick="saveSettings()">Save</button></div></div></div>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-left">
-    <div class="logo">L</div>
-    <div>
-      <h1>Leivas AI Command Center</h1>
-      <div class="header-sub">Local Ollama Workspace</div>
-    </div>
+<!-- OVERVIEW -->
+<div class="page active" id="page-overview"><div class="overview">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Emails Triaged</div><div class="stat-value" id="oTotal">—</div><div class="stat-sub" id="oTotalSub">Loading...</div></div>
+    <div class="stat-card"><div class="stat-label">Needs Response</div><div class="stat-value" id="oRespond" style="color:var(--red)">—</div><div class="stat-sub">Urgent</div></div>
+    <div class="stat-card"><div class="stat-label">Deals / OMs</div><div class="stat-value" id="oDeals" style="color:var(--purple)">—</div><div class="stat-sub">Deal flow</div></div>
+    <div class="stat-card"><div class="stat-label">Low Priority</div><div class="stat-value" id="oLow" style="color:var(--text-muted)">—</div><div class="stat-sub">Filtered</div></div>
+    <div class="stat-card"><div class="stat-label">Classification</div><div class="stat-value" id="oRate" style="color:var(--green)">—</div><div class="stat-sub">Success rate</div></div>
   </div>
-  <div class="status-row">
-    <div class="badge"><span class="dot" id="ollamaStatus"></span> <span id="ollamaStatusText">Checking...</span></div>
-    <div class="badge" id="modelCountBadge">— models</div>
-    <div class="badge" id="lastTriageBadge">Last triage: —</div>
-    <div class="badge" style="cursor:pointer;" onclick="showSettings()" title="Settings">⚙️</div>
+  <div class="charts-row"><div class="chart-card"><div class="chart-title">📊 Classification Breakdown</div><div class="chart-wrap"><canvas id="chartCategory"></canvas></div></div><div class="chart-card"><div class="chart-title">📬 Volume by Account</div><div class="chart-wrap"><canvas id="chartAccount"></canvas></div></div></div>
+  <div class="charts-row"><div class="chart-card"><div class="chart-title">📈 Email Volume Over Time</div><div class="chart-wrap"><canvas id="chartTimeline"></canvas></div></div><div class="chart-card"><div class="chart-title">🎯 Priority Distribution</div><div class="chart-wrap"><canvas id="chartPriority"></canvas></div></div></div>
+  <div class="activity-section"><div class="activity-title">⚡ Recent Activity</div><div class="activity-grid"><div class="activity-card"><div class="activity-card-title">🔴 Needs Response</div><div id="actRespond"></div></div><div class="activity-card"><div class="activity-card-title">🏢 Recent Deals</div><div id="actDeals"></div></div><div class="activity-card"><div class="activity-card-title">⏰ System Status</div><div id="actSystem"></div></div></div></div>
+</div></div>
+
+<!-- WORKSPACE -->
+<div class="page" id="page-workspace"><div class="workspace">
+  <div class="sidebar"><div class="sidebar-section"><div class="sidebar-label">Quick Actions</div>
+    <button class="quick-action" onclick="runPreset('draft_email')"><div class="qa-icon" style="background:rgba(239,68,68,0.12)">✉️</div><div><div class="qa-label">Draft Reply</div><div class="qa-desc">Email response</div></div></button>
+    <button class="quick-action" onclick="runPreset('analyze_deal')"><div class="qa-icon" style="background:rgba(168,85,247,0.12)">🏢</div><div><div class="qa-label">Analyze Deal</div><div class="qa-desc">Underwrite</div></div></button>
+    <button class="quick-action" onclick="runPreset('write_loi')"><div class="qa-icon" style="background:rgba(34,197,94,0.12)">📝</div><div><div class="qa-label">Draft LOI</div><div class="qa-desc">Letter of intent</div></div></button>
+    <button class="quick-action" onclick="runPreset('investor_update')"><div class="qa-icon" style="background:rgba(245,158,11,0.12)">💰</div><div><div class="qa-label">Investor Update</div><div class="qa-desc">LP memo</div></div></button>
+    <button class="quick-action" onclick="runPreset('market_research')"><div class="qa-icon" style="background:rgba(6,182,212,0.12)">📊</div><div><div class="qa-label">Market Research</div><div class="qa-desc">MSA analysis</div></div></button>
+    <button class="quick-action" onclick="runPreset('summarize')"><div class="qa-icon" style="background:rgba(59,130,246,0.12)">📋</div><div><div class="qa-label">Summarize</div><div class="qa-desc">Condense text</div></div></button>
+    <button class="quick-action" onclick="runPreset('brainstorm')"><div class="qa-icon" style="background:rgba(168,85,247,0.12)">💡</div><div><div class="qa-label">Brainstorm</div><div class="qa-desc">Think it through</div></div></button>
+    <button class="quick-action" onclick="runPreset('custom')"><div class="qa-icon" style="background:rgba(100,116,139,0.12)">⚙️</div><div><div class="qa-label">Custom</div><div class="qa-desc">Any prompt</div></div></button>
+  </div><div class="sidebar-section" style="flex:1;overflow-y:auto"><div class="sidebar-label">History</div><div id="taskHistory"><div style="padding:10px;font-size:11px;color:var(--text-muted);text-align:center">No tasks yet</div></div></div></div>
+  <div class="main-content">
+    <div class="task-output" id="taskOutput"><div class="welcome-screen"><div class="big-icon">⚡</div><h2>Your AI Workspace</h2><p>Pick an action or type anything below.</p><div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;justify-content:center"><button class="welcome-btn" onclick="runPreset('draft_email')">✉️ Draft Reply</button><button class="welcome-btn" onclick="runPreset('analyze_deal')">🏢 Analyze Deal</button><button class="welcome-btn" onclick="runPreset('write_loi')">📝 Write LOI</button><button class="welcome-btn" onclick="runPreset('brainstorm')">💡 Brainstorm</button></div></div></div>
+    <div class="input-bar"><div class="model-bar"><label>Model:</label><select id="taskModel"></select><div style="flex:1"></div><span class="chip" id="chipSystem" onclick="toggleSys()">+ System prompt</span></div><div id="sysArea" style="display:none;margin-bottom:8px"><textarea class="input-field" id="systemPrompt" rows="3" style="min-height:50px;font-size:11px">You are an AI assistant for Cody Leivas, a CRE professional focused on industrial properties. Direct, professional, conservative underwriting.</textarea></div><div class="input-row"><textarea class="input-field" id="taskInput" placeholder="What would you like Ollama to do?" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendTask()}" oninput="autoR(this)"></textarea><button class="send-btn" id="taskSendBtn" onclick="sendTask()">Run ⚡</button></div></div>
   </div>
-</div>
+  <div class="chat-panel"><div class="chat-header">💬 Quick Chat</div><div class="chat-messages" id="chatMessages"><div class="chat-msg system">Chat with Ollama</div></div><div class="chat-input-area"><div class="chat-input-row"><textarea class="chat-input" id="chatInput" placeholder="Quick question..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}" oninput="autoR(this)"></textarea><button class="chat-send" id="chatSendBtn" onclick="sendChat()">→</button></div></div></div>
+</div></div>
 
-<!-- Settings modal -->
-<div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:440px;max-width:90vw;">
-    <div style="font-size:16px;font-weight:600;margin-bottom:16px;">Settings</div>
-    <div style="margin-bottom:16px;">
-      <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px;">Ollama URL</label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="settingsOllamaUrl" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:monospace;outline:none;">
-        <button onclick="saveOllamaUrl()" style="padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;">Save</button>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
-        Default: http://localhost:11434<br>
-        Remote via Tailscale: http://100.x.x.x:11434<br>
-        Or pass as URL param: ?ollama=http://your-ip:11434
-      </div>
-    </div>
-    <div style="border-top:1px solid var(--border);padding-top:12px;font-size:11px;color:var(--text-muted);">
-      Current: <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;" id="settingsCurrentUrl"></code>
-    </div>
-  </div>
-</div>
+<!-- TRIAGE -->
+<div class="page" id="page-triage"><div class="triage-page">
+  <div class="triage-stats"><div class="triage-stat"><div class="label">Total</div><div class="val" id="tTotal">—</div><div class="sub" id="tSub">—</div></div><div class="triage-stat"><div class="label">Respond</div><div class="val" id="tResp" style="color:var(--red)">—</div></div><div class="triage-stat"><div class="label">Meetings</div><div class="val" id="tMeet" style="color:var(--accent)">—</div></div><div class="triage-stat"><div class="label">Deals</div><div class="val" id="tDeal" style="color:var(--purple)">—</div></div><div class="triage-stat"><div class="label">Investor</div><div class="val" id="tInv" style="color:var(--green)">—</div></div></div>
+  <div class="triage-log-bar"><span>📂</span><input id="logPath" placeholder="Auto-loads from GitHub"><button class="sm-btn" onclick="loadTriageFile()">Browse</button><button class="sm-btn" onclick="refreshTriage()">↻</button></div>
+  <div class="triage-toolbar" id="triageFilters"><button class="filter-chip active" data-f="ALL" onclick="setTF('ALL',this)">All</button><button class="filter-chip" data-f="TO_RESPOND" onclick="setTF('TO_RESPOND',this)">🔴 Respond</button><button class="filter-chip" data-f="ACTION_NEEDED" onclick="setTF('ACTION_NEEDED',this)">🟠 Action</button><button class="filter-chip" data-f="MEETING" onclick="setTF('MEETING',this)">📅 Meeting</button><button class="filter-chip" data-f="DEAL_OM" onclick="setTF('DEAL_OM',this)">🏢 Deal</button><button class="filter-chip" data-f="INVESTOR" onclick="setTF('INVESTOR',this)">💰 Investor</button><button class="filter-chip" data-f="FYI" onclick="setTF('FYI',this)">🔵 FYI</button><button class="filter-chip" data-f="LOW_PRIORITY" onclick="setTF('LOW_PRIORITY',this)">⚪ Low</button><button class="filter-chip" data-f="UNCLASSIFIED" onclick="setTF('UNCLASSIFIED',this)">❓</button></div>
+  <div class="triage-list" id="triageList"><div class="empty"><div class="icon">📂</div><div class="title">Loading...</div></div></div>
+</div></div>
 
-<!-- Nav -->
-<div class="nav">
-  <button class="nav-tab active" onclick="switchPage('workspace',this)">⚡ Workspace</button>
-  <button class="nav-tab" onclick="switchPage('triage',this)">📨 Email Triage</button>
-  <button class="nav-tab" onclick="switchPage('jobs',this)">⏰ Scheduled Jobs</button>
-  <button class="nav-tab" onclick="switchPage('models',this)">🧠 Models</button>
-</div>
+<!-- JOBS -->
+<div class="page" id="page-jobs"><div class="triage-page">
+  <div class="triage-stats"><div class="triage-stat"><div class="label">Jobs</div><div class="val" id="jTotal">—</div></div><div class="triage-stat"><div class="label">Active</div><div class="val" id="jActive" style="color:var(--green)">—</div></div><div class="triage-stat"><div class="label">Ollama</div><div class="val" id="jOllama" style="color:var(--accent)">—</div><div class="sub" id="jMod">—</div></div><div class="triage-stat"><div class="label">Uptime</div><div class="val" id="jUp" style="font-size:15px">—</div><div class="sub" id="jLd">—</div></div></div>
+  <div style="padding:10px 18px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:6px"><span style="font-size:12px;font-weight:600">System Jobs</span><div style="flex:1"></div><button class="sm-btn" onclick="loadJobsFile()">📂</button><button class="sm-btn" onclick="refreshJobs()">↻</button></div>
+  <div style="flex:1;overflow-y:auto" id="jobsList"><div class="empty"><div class="icon">⏰</div><div class="title">Loading...</div></div></div>
+</div></div>
 
-<!-- ════════ WORKSPACE PAGE ════════ -->
-<div class="page active" id="page-workspace">
-  <div class="workspace">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">Quick Actions</div>
-        <button class="quick-action" onclick="runPreset('draft_email')">
-          <div class="icon" style="background:rgba(239,68,68,0.12)">✉️</div>
-          <div><div class="label">Draft Email Reply</div><div class="desc">Reply to a message</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('analyze_deal')">
-          <div class="icon" style="background:rgba(168,85,247,0.12)">🏢</div>
-          <div><div class="label">Analyze Deal / OM</div><div class="desc">Underwrite or summarize</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('write_loi')">
-          <div class="icon" style="background:rgba(34,197,94,0.12)">📝</div>
-          <div><div class="label">Draft LOI</div><div class="desc">Letter of intent</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('investor_update')">
-          <div class="icon" style="background:rgba(245,158,11,0.12)">💰</div>
-          <div><div class="label">Investor Update</div><div class="desc">Write an investor memo</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('market_research')">
-          <div class="icon" style="background:rgba(6,182,212,0.12)">📊</div>
-          <div><div class="label">Market Research</div><div class="desc">Analyze a market or MSA</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('summarize')">
-          <div class="icon" style="background:rgba(59,130,246,0.12)">📋</div>
-          <div><div class="label">Summarize</div><div class="desc">Summarize text or notes</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('brainstorm')">
-          <div class="icon" style="background:rgba(168,85,247,0.12)">💡</div>
-          <div><div class="label">Brainstorm</div><div class="desc">Think through a problem</div></div>
-        </button>
-        <button class="quick-action" onclick="runPreset('custom')">
-          <div class="icon" style="background:rgba(100,116,139,0.12)">⚙️</div>
-          <div><div class="label">Custom Task</div><div class="desc">Run any prompt</div></div>
-        </button>
-      </div>
-
-      <div class="sidebar-section" style="flex:1;overflow-y:auto;padding-bottom:0;">
-        <div class="sidebar-label">Task History</div>
-        <div id="taskHistory">
-          <div style="padding:12px;font-size:12px;color:var(--text-muted);text-align:center;">No tasks yet</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main content -->
-    <div class="main-content">
-      <div class="task-output" id="taskOutput">
-        <div class="welcome-screen">
-          <div class="big-icon">⚡</div>
-          <h2>Your AI Workspace</h2>
-          <p>Pick a quick action from the sidebar, or type anything below to run it through Ollama locally. Free, private, fast.</p>
-          <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;justify-content:center;">
-            <button class="quick-action" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;" onclick="runPreset('draft_email')">✉️ Draft Reply</button>
-            <button class="quick-action" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;" onclick="runPreset('analyze_deal')">🏢 Analyze Deal</button>
-            <button class="quick-action" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;" onclick="runPreset('write_loi')">📝 Write LOI</button>
-            <button class="quick-action" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;" onclick="runPreset('brainstorm')">💡 Brainstorm</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="input-bar">
-        <div class="model-bar">
-          <label>Model:</label>
-          <select id="taskModel"></select>
-          <div style="flex:1;"></div>
-          <span class="chip" id="chipSystem" onclick="toggleSystemPrompt()">+ System prompt</span>
-        </div>
-        <div id="systemPromptArea" style="display:none;margin-bottom:10px;">
-          <textarea class="input-field" id="systemPrompt" rows="3" style="min-height:60px;font-size:12px;"
-            placeholder="System prompt (optional)... e.g. You are a CRE acquisitions analyst...">You are an AI assistant for Cody Leivas, a commercial real estate professional focused on industrial properties. You draft in a direct, professional, confident tone. When analyzing deals, use conservative underwriting assumptions.</textarea>
-        </div>
-        <div class="input-row">
-          <textarea class="input-field" id="taskInput" placeholder="What would you like Ollama to do?" rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendTask()}"
-            oninput="autoResize(this)"></textarea>
-          <button class="send-btn" id="taskSendBtn" onclick="sendTask()">Run ⚡</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chat panel -->
-    <div class="chat-panel">
-      <div class="chat-header">💬 Quick Chat</div>
-      <div class="chat-messages" id="chatMessages">
-        <div class="chat-msg system">Chat with Ollama — fast back-and-forth.</div>
-      </div>
-      <div class="chat-input-area">
-        <div class="chat-input-row">
-          <textarea class="chat-input" id="chatInput" placeholder="Quick question..." rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
-            oninput="autoResize(this)"></textarea>
-          <button class="chat-send" id="chatSendBtn" onclick="sendChat()">→</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════ TRIAGE PAGE ════════ -->
-<div class="page" id="page-triage">
-  <div class="triage-page">
-    <div class="triage-stats">
-      <div class="triage-stat"><div class="label">Total Triaged</div><div class="val" id="tTotal">—</div><div class="sub" id="tTotalSub">—</div></div>
-      <div class="triage-stat"><div class="label">Needs Response</div><div class="val" id="tRespond" style="color:var(--red)">—</div><div class="sub">TO_RESPOND + ACTION</div></div>
-      <div class="triage-stat"><div class="label">Meetings</div><div class="val" id="tMeetings" style="color:var(--accent)">—</div><div class="sub">Calendar items</div></div>
-      <div class="triage-stat"><div class="label">Deals / OMs</div><div class="val" id="tDeals" style="color:var(--purple)">—</div><div class="sub">Deal flow</div></div>
-      <div class="triage-stat"><div class="label">Investor</div><div class="val" id="tInvestor" style="color:var(--green)">—</div><div class="sub">Investor comms</div></div>
-    </div>
-    <div class="triage-log-bar">
-      <span>📂</span>
-      <input type="text" id="logPath" placeholder="Drag triage_log.json here or click Load">
-      <button class="sm-btn" onclick="loadTriageFile()">Browse</button>
-      <button class="sm-btn" onclick="refreshTriage()">↻ Refresh</button>
-    </div>
-    <div class="triage-toolbar" id="triageFilters">
-      <button class="filter-chip active" data-f="ALL" onclick="setTriageFilter('ALL',this)">All</button>
-      <button class="filter-chip" data-f="TO_RESPOND" onclick="setTriageFilter('TO_RESPOND',this)">🔴 Respond</button>
-      <button class="filter-chip" data-f="ACTION_NEEDED" onclick="setTriageFilter('ACTION_NEEDED',this)">🟠 Action</button>
-      <button class="filter-chip" data-f="MEETING" onclick="setTriageFilter('MEETING',this)">📅 Meeting</button>
-      <button class="filter-chip" data-f="DEAL_OM" onclick="setTriageFilter('DEAL_OM',this)">🏢 Deal</button>
-      <button class="filter-chip" data-f="INVESTOR" onclick="setTriageFilter('INVESTOR',this)">💰 Investor</button>
-      <button class="filter-chip" data-f="FYI" onclick="setTriageFilter('FYI',this)">🔵 FYI</button>
-      <button class="filter-chip" data-f="LOW_PRIORITY" onclick="setTriageFilter('LOW_PRIORITY',this)">⚪ Low</button>
-      <button class="filter-chip" data-f="UNCLASSIFIED" onclick="setTriageFilter('UNCLASSIFIED',this)">❓ Unclassified</button>
-    </div>
-    <div class="triage-list" id="triageList">
-      <div class="empty"><div class="icon">📂</div><div class="title">No triage data</div><div class="desc">Load triage_log.json or drag it onto this page</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════ SCHEDULED JOBS PAGE ════════ -->
-<div class="page" id="page-jobs">
-  <div class="triage-page">
-    <div class="triage-stats">
-      <div class="triage-stat"><div class="label">Total Jobs</div><div class="val" id="jTotal">—</div><div class="sub">Cron + LaunchAgents</div></div>
-      <div class="triage-stat"><div class="label">Active</div><div class="val" id="jActive" style="color:var(--green)">—</div><div class="sub">Currently running</div></div>
-      <div class="triage-stat"><div class="label">Ollama</div><div class="val" id="jOllama" style="color:var(--accent)">—</div><div class="sub" id="jOllamaModels">—</div></div>
-      <div class="triage-stat"><div class="label">System Uptime</div><div class="val" id="jUptime" style="font-size:16px;">—</div><div class="sub" id="jLoad">—</div></div>
-    </div>
-    <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:8px;">
-      <span style="font-size:13px;font-weight:600;">Local System Jobs</span>
-      <div style="flex:1;"></div>
-      <button class="sm-btn" onclick="loadJobsFile()">📂 Load jobs.json</button>
-      <button class="sm-btn" onclick="refreshJobs()">↻ Refresh</button>
-    </div>
-    <div style="flex:1;overflow-y:auto;" id="jobsList">
-      <div class="empty">
-        <div class="icon">⏰</div>
-        <div class="title">No jobs data loaded</div>
-        <div class="desc" style="max-width:400px;">
-          Run this on your Mac to generate the jobs file:<br>
-          <code style="background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin-top:8px;">cd ~/ollama-dashboard && bash collect_jobs.sh > jobs.json</code>
-          <br><br>Then click Load or drag jobs.json here.
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════ MODELS PAGE ════════ -->
-<div class="page" id="page-models">
-  <div class="models-page">
-    <div style="padding:20px 28px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:15px;font-weight:600;">Installed Models</div>
-      <button class="sm-btn" onclick="checkOllama()">↻ Refresh</button>
-    </div>
-    <div class="models-grid" id="modelsGrid">
-      <div class="empty"><div class="icon">🧠</div><div class="title">Checking Ollama...</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- Drag overlay -->
-<div id="dropOverlay" style="display:none;position:fixed;inset:0;background:rgba(59,130,246,0.1);border:3px dashed var(--accent);z-index:999;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);padding:32px;border-radius:16px;text-align:center;">
-    <div style="font-size:32px;margin-bottom:8px;">📂</div>
-    <div style="font-size:16px;font-weight:600;">Drop triage_log.json</div>
-  </div>
-</div>
+<!-- MODELS -->
+<div class="page" id="page-models"><div style="display:flex;flex-direction:column;width:100%"><div style="padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between"><div style="font-size:14px;font-weight:600">Models</div><button class="sm-btn" onclick="checkOllama()">↻</button></div><div class="models-grid" id="modelsGrid"><div class="empty"><div class="icon">🧠</div><div class="title">Checking...</div></div></div></div></div>
 
 <script>
-// ── State ──
-// Ollama URL — auto-detects from URL param, localStorage fallback, or defaults to localhost
-const OLLAMA = new URLSearchParams(location.search).get('ollama') || localStorage.getItem('ollamaUrl') || 'http://localhost:11434';
-let ollamaOnline = false;
-let triageData = [];
-let triageFilter = 'ALL';
-let tasks = [];
-let activeTaskId = null;
-let chatHistory = [];
+const GH='https://raw.githubusercontent.com/Leivascody/ai-command-center/main';
+const OL=new URLSearchParams(location.search).get('ollama')||localStorage.getItem('ollamaUrl')||'http://localhost:11434';
+let online=false,TD=[],TF='ALL',tasks=[],aTID=null,CH=[],JD=[];
+const EM={TO_RESPOND:'🔴',ACTION_NEEDED:'🟠',MEETING:'📅',DEAL_OM:'🏢',INVESTOR:'💰',FYI:'🔵',LOW_PRIORITY:'⚪',UNCLASSIFIED:'❓'};
+const CC={TO_RESPOND:'#ef4444',ACTION_NEEDED:'#f59e0b',MEETING:'#3b82f6',DEAL_OM:'#a855f7',INVESTOR:'#22c55e',FYI:'#60a5fa',LOW_PRIORITY:'#64748b',UNCLASSIFIED:'#475569'};
+const PR={draft_email:{t:'Draft Email',s:'You are Cody Leivas, CRE professional. Direct, professional, concise.',p:'Paste email to reply to...'},analyze_deal:{t:'Analyze Deal',s:'CRE analyst. 3% growth, exit cap=entry+5bps/yr, 65% LTV, 6.5%, 25yr amort.',p:'Paste deal details...'},write_loi:{t:'Draft LOI',s:'Draft LOI for CRE acquisition. Professional, specific, standard terms.',p:'Property, price, terms...'},investor_update:{t:'Investor Update',s:'Write investor update. Transparent, data-driven.',p:'Property/fund, updates...'},market_research:{t:'Market Research',s:'CRE market analyst. Vacancy, rates, cap rates, supply.',p:'Which market?'},summarize:{t:'Summarize',s:'Clear, concise summary with key takeaways.',p:'Paste text...'},brainstorm:{t:'Brainstorm',s:'Strategic partner for CRE entrepreneur. Creative but practical.',p:'What problem?'},custom:{t:'Custom',s:'',p:'Any prompt...'}};
 
-const EMOJI = { TO_RESPOND:'🔴', ACTION_NEEDED:'🟠', MEETING:'📅', DEAL_OM:'🏢', INVESTOR:'💰', FYI:'🔵', LOW_PRIORITY:'⚪', UNCLASSIFIED:'❓' };
+function switchPage(p,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));el.classList.add('active');document.getElementById('page-'+p).classList.add('active');}
+function showSettings(){document.getElementById('settingsOllamaUrl').value=OL;document.getElementById('settingsModal').style.display='flex';}
+function saveSettings(){const u=document.getElementById('settingsOllamaUrl').value.trim().replace(/\/+$/,'');if(u)localStorage.setItem('ollamaUrl',u);location.reload();}
 
-const PRESETS = {
-  draft_email: {
-    title: 'Draft Email Reply',
-    system: 'You are Cody Leivas, a commercial real estate professional. Write in a direct, professional, confident tone. Keep emails concise.',
-    placeholder: 'Paste the email you want to reply to, and any notes on what you want to say...'
-  },
-  analyze_deal: {
-    title: 'Analyze Deal / OM',
-    system: 'You are a CRE acquisitions analyst specializing in industrial properties. Analyze the deal with conservative underwriting: 3% rent growth, 3% expense growth, exit cap = entry + 5bps/yr, 65% LTV, 6.5% rate, 25yr amort. Flag assumptions.',
-    placeholder: 'Paste deal details, OM summary, or property info...'
-  },
-  write_loi: {
-    title: 'Draft LOI',
-    system: 'You are drafting a Letter of Intent for a commercial real estate acquisition. Be professional, specific, and include standard LOI terms (price, due diligence period, closing timeline, contingencies).',
-    placeholder: 'Property address, asking price, your offer terms...'
-  },
-  investor_update: {
-    title: 'Investor Update',
-    system: 'You are writing an investor update for a real estate syndication. Be transparent, data-driven, and professional. Include performance metrics, market context, and next steps.',
-    placeholder: 'What property/fund? Key updates, metrics, anything to highlight...'
-  },
-  market_research: {
-    title: 'Market Research',
-    system: 'You are a CRE market research analyst. Provide detailed analysis of industrial/commercial real estate markets with data on vacancy, rental rates, cap rates, supply pipeline, and economic drivers.',
-    placeholder: 'Which market or MSA? What specifically do you want to know?'
-  },
-  summarize: {
-    title: 'Summarize',
-    system: 'Provide a clear, concise summary. Use bullet points for key takeaways. Highlight action items if any.',
-    placeholder: 'Paste the text you want summarized...'
-  },
-  brainstorm: {
-    title: 'Brainstorm',
-    system: 'You are a strategic thinking partner for a CRE entrepreneur. Help brainstorm ideas, challenge assumptions, and think through problems from multiple angles. Be creative but practical.',
-    placeholder: 'What problem or opportunity are you thinking about?'
-  },
-  custom: {
-    title: 'Custom Task',
-    system: '',
-    placeholder: 'Enter any prompt...'
-  }
-};
+async function checkOllama(){try{const r=await fetch(`${OL}/api/tags`);const d=await r.json();online=true;document.getElementById('ollamaStatus').className='dot on';document.getElementById('ollamaStatusText').textContent='Online';const ms=d.models||[];document.getElementById('modelCountBadge').textContent=ms.length+' models';const sel=document.getElementById('taskModel');const cv=sel.value;sel.innerHTML='';ms.forEach(m=>{const o=document.createElement('option');o.value=m.name;o.textContent=m.name;if(m.name.includes('qwen3'))o.selected=true;sel.appendChild(o);});if(cv)sel.value=cv;
+document.getElementById('modelsGrid').innerHTML=ms.length?ms.map(m=>`<div class="model-card"><div class="model-card-head"><span class="model-card-name">${m.name}</span><span class="model-card-badge">${m.details?.parameter_size||'—'}</span></div><div class="model-card-stats"><div class="model-card-stat"><div class="val">${(m.size/1e9).toFixed(1)} GB</div><div class="label">Size</div></div><div class="model-card-stat"><div class="val">${m.details?.quantization_level||'—'}</div><div class="label">Quant</div></div><div class="model-card-stat"><div class="val">${m.details?.family||'—'}</div><div class="label">Family</div></div></div></div>`).join(''):'<div class="empty"><div class="icon">🧠</div><div class="title">No models</div></div>';
+}catch{online=false;document.getElementById('ollamaStatus').className='dot off';document.getElementById('ollamaStatusText').textContent='Offline';}}
 
-// ── Pages ──
-function switchPage(page, el) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('page-' + page).classList.add('active');
-}
+let CI={};
+function renderOverview(){if(!TD.length)return;const t=TD.length,co={};TD.forEach(e=>{const c=e.category||'UNCLASSIFIED';co[c]=(co[c]||0)+1;});const rsp=(co.TO_RESPOND||0)+(co.ACTION_NEEDED||0);const cl=t-(co.UNCLASSIFIED||0);
+document.getElementById('oTotal').textContent=t;document.getElementById('oTotalSub').textContent=new Set(TD.map(e=>e.account)).size+' accounts';document.getElementById('oRespond').textContent=rsp;document.getElementById('oDeals').textContent=co.DEAL_OM||0;document.getElementById('oLow').textContent=(co.LOW_PRIORITY||0)+(co.FYI||0);document.getElementById('oRate').textContent=t?Math.round(cl/t*100)+'%':'—';
+const ck=Object.keys(co).filter(k=>k!=='UNCLASSIFIED');if(CI.c)CI.c.destroy();CI.c=new Chart(document.getElementById('chartCategory'),{type:'doughnut',data:{labels:ck.map(l=>l.replace('_',' ')),datasets:[{data:ck.map(k=>co[k]),backgroundColor:ck.map(k=>CC[k]||'#475569'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:10},padding:8}}}}});
+const ac={};TD.forEach(e=>{ac[e.account||'?']=(ac[e.account||'?']||0)+1;});if(CI.a)CI.a.destroy();CI.a=new Chart(document.getElementById('chartAccount'),{type:'bar',data:{labels:Object.keys(ac),datasets:[{data:Object.values(ac),backgroundColor:['#3b82f6','#a855f7','#22c55e','#f59e0b'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(30,41,59,0.5)'}}}}});
+const hr={};TD.forEach(e=>{if(!e.timestamp)return;const h=e.timestamp.substring(0,13);hr[h]=(hr[h]||0)+1;});const hs=Object.keys(hr).sort();if(CI.t)CI.t.destroy();CI.t=new Chart(document.getElementById('chartTimeline'),{type:'line',data:{labels:hs.map(h=>h.substring(11)+':00'),datasets:[{data:hs.map(h=>hr[h]),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:'#3b82f6'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(30,41,59,0.5)'}}}}});
+const pr={High:rsp,Medium:(co.MEETING||0)+(co.DEAL_OM||0)+(co.INVESTOR||0),Low:(co.FYI||0)+(co.LOW_PRIORITY||0),Unclassified:co.UNCLASSIFIED||0};if(CI.p)CI.p.destroy();CI.p=new Chart(document.getElementById('chartPriority'),{type:'pie',data:{labels:Object.keys(pr),datasets:[{data:Object.values(pr),backgroundColor:['#ef4444','#f59e0b','#64748b','#334155'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:10}}}}}});
+const urg=TD.filter(e=>e.category==='TO_RESPOND'||e.category==='ACTION_NEEDED').slice(-5).reverse();document.getElementById('actRespond').innerHTML=urg.length?urg.map(e=>`<div class="activity-item"><span style="font-size:14px">${EM[e.category]}</span><span>${esc(e.sender?.split('<')[0]?.trim()?.replace(/"/g,'')||'?')} — ${esc(e.subject?.substring(0,30)||'')}</span></div>`).join(''):'<div style="font-size:11px;color:var(--text-muted)">None</div>';
+const dls=TD.filter(e=>e.category==='DEAL_OM').slice(-5).reverse();document.getElementById('actDeals').innerHTML=dls.length?dls.map(e=>`<div class="activity-item"><span style="font-size:14px">🏢</span><span>${esc(e.subject?.substring(0,35)||'?')}</span></div>`).join(''):'<div style="font-size:11px;color:var(--text-muted)">None</div>';
+document.getElementById('actSystem').innerHTML=`<div class="activity-item"><span style="font-size:14px">${online?'🟢':'🔴'}</span><span>Ollama: ${online?'Online':'Offline'}</span></div><div class="activity-item"><span style="font-size:14px">📨</span><span>${t} emails triaged</span></div><div class="activity-item"><span style="font-size:14px">📊</span><span>${t?Math.round(cl/t*100):0}% classified</span></div><div class="activity-item"><span style="font-size:14px">⏰</span><span>${JD.filter(j=>j.type!=='system').length} jobs</span></div>`;}
 
-// ── Ollama ──
-async function checkOllama() {
-  try {
-    const r = await fetch(`${OLLAMA}/api/tags`);
-    const d = await r.json();
-    ollamaOnline = true;
-    document.getElementById('ollamaStatus').className = 'dot on';
-    document.getElementById('ollamaStatusText').textContent = 'Online';
-    const models = d.models || [];
-    document.getElementById('modelCountBadge').textContent = models.length + ' models';
+function runPreset(k){const p=PR[k];if(!p)return;document.getElementById('taskInput').value='';document.getElementById('taskInput').placeholder=p.p;if(p.s){document.getElementById('systemPrompt').value=p.s;document.getElementById('sysArea').style.display='block';document.getElementById('chipSystem').classList.add('active');}document.getElementById('taskInput').focus();document.getElementById('taskOutput').innerHTML=`<div style="padding:16px 0"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">New Task</div><div style="font-size:16px;font-weight:600">${p.t}</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px">Type below and hit Run ⚡</div></div>`;}
+async function sendTask(){const inp=document.getElementById('taskInput');const msg=inp.value.trim();if(!msg||!online)return;const mdl=document.getElementById('taskModel').value;const sys=document.getElementById('sysArea').style.display!=='none'?document.getElementById('systemPrompt').value.trim():'';inp.value='';inp.style.height='auto';const tk={id:Date.now(),title:msg.substring(0,50)+(msg.length>50?'...':''),status:'running',model:mdl,prompt:msg,system:sys,output:'',time:new Date()};tasks.unshift(tk);aTID=tk.id;renderTH();const out=document.getElementById('taskOutput');out.innerHTML=`<div style="margin-bottom:14px"><div style="font-size:10px;color:var(--text-muted)">${mdl} · ${new Date().toLocaleTimeString()}</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px;padding:8px 12px;background:var(--surface);border-radius:7px;border:1px solid var(--border)">${esc(msg)}</div></div><div id="tS" style="white-space:pre-wrap"></div><div id="tSp"><span class="spinner"></span> <span style="font-size:11px;color:var(--text-muted);margin-left:6px">Generating...</span></div>`;document.getElementById('taskSendBtn').disabled=true;
+try{const ms=[];if(sys)ms.push({role:'system',content:sys});ms.push({role:'user',content:msg});const r=await fetch(`${OL}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:mdl,messages:ms,stream:true})});const rd=r.body.getReader();const dc=new TextDecoder();let f='';const se=document.getElementById('tS');while(true){const{done,value}=await rd.read();if(done)break;for(const l of dc.decode(value).split('\n').filter(l=>l.trim())){try{const d=JSON.parse(l);if(d.message?.content){f+=d.message.content;se.textContent=f;}}catch{}}out.scrollTop=out.scrollHeight;}tk.output=f;tk.status='done';const sp=document.getElementById('tSp');if(sp)sp.innerHTML='<button class="sm-btn" onclick="copyOut()" style="margin-top:10px">📋 Copy</button>';}catch(e){tk.status='error';tk.output=e.message;const sp=document.getElementById('tSp');if(sp)sp.innerHTML=`<div style="color:var(--red);font-size:12px">Error: ${esc(e.message)}</div>`;}document.getElementById('taskSendBtn').disabled=false;renderTH();}
+function copyOut(){const t=tasks.find(t=>t.id===aTID);if(t?.output){navigator.clipboard.writeText(t.output);event.target.textContent='✅';setTimeout(()=>event.target.textContent='📋 Copy',1500);}}
+function renderTH(){const el=document.getElementById('taskHistory');if(!tasks.length){el.innerHTML='<div style="padding:10px;font-size:11px;color:var(--text-muted);text-align:center">No tasks</div>';return;}el.innerHTML=tasks.map(t=>`<div class="task-item ${t.id===aTID?'active':''}" onclick="showTk(${t.id})"><div class="task-item-title">${esc(t.title)}</div><div class="task-item-meta"><span class="task-status ${t.status}">${t.status==='running'?'⏳':t.status==='done'?'✓':'✗'}</span><span>${fmtT(t.time)}</span></div></div>`).join('');}
+function showTk(id){const t=tasks.find(x=>x.id===id);if(!t)return;aTID=id;renderTH();document.getElementById('taskOutput').innerHTML=`<div style="margin-bottom:14px"><div style="font-size:10px;color:var(--text-muted)">${t.model} · ${new Date(t.time).toLocaleTimeString()}</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px;padding:8px 12px;background:var(--surface);border-radius:7px;border:1px solid var(--border)">${esc(t.prompt)}</div></div><div style="white-space:pre-wrap">${esc(t.output)}</div>${t.status==='done'?'<button class="sm-btn" onclick="copyOut()" style="margin-top:10px">📋 Copy</button>':''}`;}
+function toggleSys(){const a=document.getElementById('sysArea');a.style.display=a.style.display==='none'?'block':'none';document.getElementById('chipSystem').classList.toggle('active');}
 
-    // Populate selectors
-    ['taskModel'].forEach(id => {
-      const sel = document.getElementById(id);
-      const cur = sel.value;
-      sel.innerHTML = '';
-      models.forEach(m => {
-        const o = document.createElement('option');
-        o.value = m.name; o.textContent = m.name;
-        if (m.name.includes('qwen3')) o.selected = true;
-        sel.appendChild(o);
-      });
-      if (cur) sel.value = cur;
-    });
+async function sendChat(){const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg||!online)return;inp.value='';inp.style.height='auto';addC('user',msg);CH.push({role:'user',content:msg});document.getElementById('chatSendBtn').disabled=true;try{const r=await fetch(`${OL}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:document.getElementById('taskModel').value,messages:CH.slice(-20),stream:true})});const el=addC('assistant','');const rd=r.body.getReader();const dc=new TextDecoder();let f='';while(true){const{done,value}=await rd.read();if(done)break;for(const l of dc.decode(value).split('\n').filter(l=>l.trim())){try{const d=JSON.parse(l);if(d.message?.content){f+=d.message.content;el.textContent=f;}}catch{}}document.getElementById('chatMessages').scrollTop=99999;}CH.push({role:'assistant',content:f});}catch(e){addC('system','Error: '+e.message);}document.getElementById('chatSendBtn').disabled=false;}
+function addC(r,t){const c=document.getElementById('chatMessages');const el=document.createElement('div');el.className='chat-msg '+r;el.textContent=t;c.appendChild(el);c.scrollTop=99999;return el;}
 
-    // Models grid
-    const grid = document.getElementById('modelsGrid');
-    if (!models.length) {
-      grid.innerHTML = '<div class="empty"><div class="icon">🧠</div><div class="title">No models</div><div class="desc">Run: ollama pull qwen3:32b</div></div>';
-    } else {
-      grid.innerHTML = models.map(m => {
-        const gb = (m.size / 1e9).toFixed(1);
-        const mod = new Date(m.modified_at).toLocaleDateString();
-        return `<div class="model-card">
-          <div class="model-card-head">
-            <span class="model-card-name">${m.name}</span>
-            <span class="model-card-badge">${m.details?.parameter_size || '—'}</span>
-          </div>
-          <div class="model-card-stats">
-            <div class="model-card-stat"><div class="val">${gb} GB</div><div class="label">Size</div></div>
-            <div class="model-card-stat"><div class="val">${m.details?.quantization_level || '—'}</div><div class="label">Quant</div></div>
-            <div class="model-card-stat"><div class="val">${mod}</div><div class="label">Modified</div></div>
-            <div class="model-card-stat"><div class="val">${m.details?.family || '—'}</div><div class="label">Family</div></div>
-          </div>
-        </div>`;
-      }).join('');
-    }
-  } catch {
-    ollamaOnline = false;
-    document.getElementById('ollamaStatus').className = 'dot off';
-    document.getElementById('ollamaStatusText').textContent = 'Offline';
-    document.getElementById('modelCountBadge').textContent = '— models';
-    document.getElementById('modelsGrid').innerHTML = '<div class="empty"><div class="icon">⚠️</div><div class="title">Ollama not running</div><div class="desc">Start with: ollama serve</div></div>';
-  }
-}
+function renderTriage(){const list=document.getElementById('triageList');let d=TF==='ALL'?TD:TD.filter(e=>e.category===TF);d.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+if(!d.length){list.innerHTML=`<div class="empty"><div class="icon">${TF==='ALL'?'📭':EM[TF]||'📭'}</div><div class="title">No ${TF==='ALL'?'':TF.replace(/_/g,' ').toLowerCase()+' '}emails</div></div>`;return;}
+list.innerHTML=d.map(e=>{const s=(e.sender||'').split('<')[0].trim().replace(/"/g,'');return`<div class="email-row" onclick="t2t(this)" data-e='${esc(JSON.stringify(e))}'><div class="email-icon ${e.category}">${EM[e.category]||'❓'}</div><div class="email-body"><div class="email-sender">${esc(s)}</div><div class="email-subj">${esc(e.subject||'')}</div><div class="email-tags"><span class="email-tag">${esc(e.account||'')}</span><span class="email-tag">${esc(e.summary||'')}</span></div></div><div class="email-time">${fmtT(e.timestamp)}</div></div>`;}).join('');
+document.getElementById('tTotal').textContent=TD.length;document.getElementById('tSub').textContent=new Set(TD.map(e=>e.account)).size+' accounts';document.getElementById('tResp').textContent=TD.filter(e=>e.category==='TO_RESPOND'||e.category==='ACTION_NEEDED').length;document.getElementById('tMeet').textContent=TD.filter(e=>e.category==='MEETING').length;document.getElementById('tDeal').textContent=TD.filter(e=>e.category==='DEAL_OM').length;document.getElementById('tInv').textContent=TD.filter(e=>e.category==='INVESTOR').length;
+if(TD.length){const lt=[...TD].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];document.getElementById('lastTriageBadge').textContent='Last: '+fmtT(lt.timestamp);}
+document.querySelectorAll('.filter-chip').forEach(ch=>{const f=ch.dataset.f;const c=f==='ALL'?TD.length:TD.filter(e=>e.category===f).length;let cn=ch.querySelector('.filter-count');if(c>0){if(!cn){cn=document.createElement('span');cn.className='filter-count';ch.appendChild(cn);}cn.textContent=c;}else if(cn)cn.remove();});}
+function setTF(f,el){TF=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderTriage();}
+function t2t(el){try{const e=JSON.parse(el.dataset.e);document.querySelectorAll('.nav-tab')[1].click();const s=(e.sender||'').split('<')[0].trim().replace(/"/g,'');document.getElementById('taskInput').value=`Draft reply:\nFrom: ${s}\nSubject: ${e.subject}\nSummary: ${e.summary}`;document.getElementById('systemPrompt').value='You are Cody Leivas. Professional, direct, concise.';document.getElementById('sysArea').style.display='block';document.getElementById('chipSystem').classList.add('active');document.getElementById('taskInput').focus();}catch{}}
+function loadTriageFile(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{TD=JSON.parse(ev.target.result);renderTriage();renderOverview();}catch{}};r.readAsText(f);};i.click();}
+async function refreshTriage(){try{const r=await fetch('triage_log.json?t='+Date.now());TD=await r.json();renderTriage();renderOverview();}catch{try{const r=await fetch(`${GH}/triage_log.json?t=`+Date.now());TD=await r.json();renderTriage();renderOverview();}catch{}}}
 
-// ── Tasks ──
-function runPreset(key) {
-  const p = PRESETS[key];
-  if (!p) return;
-  document.getElementById('taskInput').value = '';
-  document.getElementById('taskInput').placeholder = p.placeholder;
-  if (p.system) {
-    document.getElementById('systemPrompt').value = p.system;
-    document.getElementById('systemPromptArea').style.display = 'block';
-    document.getElementById('chipSystem').classList.add('active');
-  }
-  document.getElementById('taskInput').focus();
-  // Show task title in output
-  document.getElementById('taskOutput').innerHTML = `
-    <div style="padding:20px 0;">
-      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">New Task</div>
-      <div style="font-size:18px;font-weight:600;">${p.title}</div>
-      <div style="font-size:13px;color:var(--text-dim);margin-top:4px;">Type your input below and hit Run ⚡</div>
-    </div>`;
-}
+function renderJobs(){const list=document.getElementById('jobsList');const jobs=JD.filter(j=>j.type!=='system');const sys=JD.find(j=>j.type==='system');document.getElementById('jTotal').textContent=jobs.length;document.getElementById('jActive').textContent=jobs.filter(j=>j.status==='active'||j.status==='online').length;const oj=JD.find(j=>j.type==='service'&&j.name==='Ollama');if(oj){document.getElementById('jOllama').textContent=oj.status==='online'?'Online':'Offline';document.getElementById('jOllama').style.color=oj.status==='online'?'var(--green)':'var(--red)';document.getElementById('jMod').textContent=oj.models||'—';}if(sys){document.getElementById('jUp').textContent=sys.uptime||'—';document.getElementById('jLd').textContent=sys.loadAvg?'Load: '+sys.loadAvg:'—';}
+if(!jobs.length){list.innerHTML='<div class="empty"><div class="icon">⏰</div><div class="title">No jobs</div></div>';return;}
+const ic={cron:'⏰',launchagent:'🚀',service:'🔌'};list.innerHTML=jobs.map(j=>{const s=(j.status==='active'||j.status==='online')?'done':'error';let dt='';if(j.type==='cron')dt=`<div style="font-size:11px;color:var(--text-dim);margin-top:3px"><code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px">${esc(j.schedule)}</code> ${esc(j.command||'')}</div>`;else if(j.type==='launchagent')dt=`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${esc(j.label||'')} ${j.keepAlive?'<span style="font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(34,197,94,0.12);color:var(--green)">KeepAlive</span>':''}</div>`;else if(j.type==='service')dt=`<div style="font-size:11px;font-family:monospace;color:var(--text-dim);margin-top:3px">${esc(j.url||'')}</div>`;
+return`<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border)"><div style="width:30px;height:30px;border-radius:7px;background:${j.type==='cron'?'rgba(245,158,11,0.12)':j.type==='launchagent'?'rgba(168,85,247,0.12)':'rgba(6,182,212,0.12)'};display:flex;align-items:center;justify-content:center;font-size:14px">${ic[j.type]||'⚙️'}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;font-weight:600">${esc(j.name)}</span><span class="task-status ${s}">${s==='done'?'Active':'Inactive'}</span></div>${dt}</div></div>`;}).join('');}
+function loadJobsFile(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{JD=JSON.parse(ev.target.result);renderJobs();}catch{}};r.readAsText(f);};i.click();}
+async function refreshJobs(){try{const r=await fetch('jobs.json?t='+Date.now());JD=await r.json();renderJobs();}catch{try{const r=await fetch(`${GH}/jobs.json?t=`+Date.now());JD=await r.json();renderJobs();}catch{}}}
 
-async function sendTask() {
-  const input = document.getElementById('taskInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  if (!ollamaOnline) { alert('Ollama is offline. Start it with: ollama serve'); return; }
+document.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropOverlay').style.display='flex';});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.getElementById('dropOverlay').style.display='none';});
+document.addEventListener('drop',e=>{e.preventDefault();document.getElementById('dropOverlay').style.display='none';const f=e.dataTransfer.files[0];if(f?.name.endsWith('.json')){const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(Array.isArray(d)&&d[0]?.category){TD=d;renderTriage();renderOverview();}else{JD=d;renderJobs();}}catch{}};r.readAsText(f);}});
 
-  const model = document.getElementById('taskModel').value;
-  const system = document.getElementById('systemPromptArea').style.display !== 'none'
-    ? document.getElementById('systemPrompt').value.trim() : '';
+function fmtT(ts){try{const d=new Date(ts);const n=new Date();const m=Math.floor((n-d)/60000);if(m<1)return'now';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch{return'';}}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,140)+'px';}
 
-  input.value = '';
-  input.style.height = 'auto';
-
-  // Create task
-  const task = {
-    id: Date.now(),
-    title: msg.substring(0, 60) + (msg.length > 60 ? '...' : ''),
-    status: 'running',
-    model: model,
-    prompt: msg,
-    system: system,
-    output: '',
-    time: new Date()
-  };
-  tasks.unshift(task);
-  activeTaskId = task.id;
-  renderTaskHistory();
-
-  // Show output area
-  const out = document.getElementById('taskOutput');
-  out.innerHTML = `
-    <div style="margin-bottom:16px;">
-      <div style="font-size:11px;color:var(--text-muted);">${model} · ${new Date().toLocaleTimeString()}</div>
-      <div style="font-size:13px;color:var(--text-dim);margin-top:4px;padding:10px 14px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">${esc(msg)}</div>
-    </div>
-    <div id="taskStream" style="white-space:pre-wrap;"></div>
-    <div id="taskSpinner"><span class="spinner"></span> <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">Generating...</span></div>`;
-
-  document.getElementById('taskSendBtn').disabled = true;
-
-  try {
-    const messages = [];
-    if (system) messages.push({ role: 'system', content: system });
-    messages.push({ role: 'user', content: msg });
-
-    const resp = await fetch(`${OLLAMA}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, stream: true })
-    });
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let full = '';
-    const streamEl = document.getElementById('taskStream');
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value);
-      for (const line of chunk.split('\n').filter(l => l.trim())) {
-        try {
-          const d = JSON.parse(line);
-          if (d.message?.content) {
-            full += d.message.content;
-            streamEl.textContent = full;
-          }
-        } catch {}
-      }
-      out.scrollTop = out.scrollHeight;
-    }
-
-    task.output = full;
-    task.status = 'done';
-
-    // Add copy button
-    const spinner = document.getElementById('taskSpinner');
-    if (spinner) spinner.innerHTML = `<button class="sm-btn" onclick="copyOutput()" style="margin-top:12px;">📋 Copy to clipboard</button>`;
-
-  } catch (e) {
-    task.status = 'error';
-    task.output = e.message;
-    const spinner = document.getElementById('taskSpinner');
-    if (spinner) spinner.innerHTML = `<div style="color:var(--red);font-size:13px;">Error: ${esc(e.message)}</div>`;
-  }
-
-  document.getElementById('taskSendBtn').disabled = false;
-  renderTaskHistory();
-}
-
-function copyOutput() {
-  const task = tasks.find(t => t.id === activeTaskId);
-  if (task?.output) {
-    navigator.clipboard.writeText(task.output);
-    // Brief feedback
-    event.target.textContent = '✅ Copied!';
-    setTimeout(() => event.target.textContent = '📋 Copy to clipboard', 1500);
-  }
-}
-
-function renderTaskHistory() {
-  const el = document.getElementById('taskHistory');
-  if (!tasks.length) {
-    el.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text-muted);text-align:center;">No tasks yet</div>';
-    return;
-  }
-  el.innerHTML = tasks.map(t => `
-    <div class="task-item ${t.id === activeTaskId ? 'active' : ''}" onclick="showTask(${t.id})">
-      <div class="task-item-title">${esc(t.title)}</div>
-      <div class="task-item-meta">
-        <span class="task-status ${t.status}">${t.status === 'running' ? '<span class="spinner"></span> Running' : t.status === 'done' ? '✓ Done' : '✗ Error'}</span>
-        <span>${formatTime(t.time)}</span>
-      </div>
-    </div>`).join('');
-}
-
-function showTask(id) {
-  const task = tasks.find(t => t.id === id);
-  if (!task) return;
-  activeTaskId = id;
-  renderTaskHistory();
-
-  const out = document.getElementById('taskOutput');
-  const statusHtml = task.status === 'running'
-    ? '<span class="spinner"></span> Generating...'
-    : task.status === 'done'
-      ? `<button class="sm-btn" onclick="copyOutput()">📋 Copy to clipboard</button>`
-      : `<span style="color:var(--red)">Error: ${esc(task.output)}</span>`;
-
-  out.innerHTML = `
-    <div style="margin-bottom:16px;">
-      <div style="font-size:11px;color:var(--text-muted);">${task.model} · ${new Date(task.time).toLocaleTimeString()}</div>
-      <div style="font-size:13px;color:var(--text-dim);margin-top:4px;padding:10px 14px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">${esc(task.prompt)}</div>
-    </div>
-    <div style="white-space:pre-wrap;">${esc(task.output)}</div>
-    <div style="margin-top:12px;">${statusHtml}</div>`;
-}
-
-function toggleSystemPrompt() {
-  const area = document.getElementById('systemPromptArea');
-  const chip = document.getElementById('chipSystem');
-  if (area.style.display === 'none') {
-    area.style.display = 'block';
-    chip.classList.add('active');
-  } else {
-    area.style.display = 'none';
-    chip.classList.remove('active');
-  }
-}
-
-// ── Chat ──
-async function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg || !ollamaOnline) return;
-  input.value = ''; input.style.height = 'auto';
-
-  addChat('user', msg);
-  chatHistory.push({ role: 'user', content: msg });
-
-  const model = document.getElementById('taskModel').value;
-  document.getElementById('chatSendBtn').disabled = true;
-
-  try {
-    const resp = await fetch(`${OLLAMA}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages: chatHistory.slice(-20), stream: true })
-    });
-
-    const el = addChat('assistant', '');
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let full = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      for (const line of decoder.decode(value).split('\n').filter(l => l.trim())) {
-        try { const d = JSON.parse(line); if (d.message?.content) { full += d.message.content; el.textContent = full; } } catch {}
-      }
-      document.getElementById('chatMessages').scrollTop = 99999;
-    }
-    chatHistory.push({ role: 'assistant', content: full });
-  } catch (e) {
-    addChat('system', 'Error: ' + e.message);
-  }
-  document.getElementById('chatSendBtn').disabled = false;
-}
-
-function addChat(role, text) {
-  const c = document.getElementById('chatMessages');
-  const el = document.createElement('div');
-  el.className = 'chat-msg ' + role;
-  el.textContent = text;
-  c.appendChild(el);
-  c.scrollTop = 99999;
-  return el;
-}
-
-// ── Triage ──
-function renderTriage() {
-  const list = document.getElementById('triageList');
-  let data = triageFilter === 'ALL' ? triageData : triageData.filter(e => e.category === triageFilter);
-  data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  if (!data.length) {
-    list.innerHTML = `<div class="empty"><div class="icon">${triageFilter === 'ALL' ? '📭' : EMOJI[triageFilter] || '📭'}</div><div class="title">No ${triageFilter === 'ALL' ? '' : triageFilter.replace(/_/g,' ').toLowerCase() + ' '}emails</div><div class="desc">${triageData.length ? 'No emails match this filter' : 'Load triage_log.json'}</div></div>`;
-    return;
-  }
-
-  list.innerHTML = data.map(e => {
-    const sender = (e.sender||'').split('<')[0].trim().replace(/"/g,'');
-    return `<div class="email-row" onclick="triageToTask(this)" data-email='${esc(JSON.stringify(e))}'>
-      <div class="email-icon ${e.category}">${EMOJI[e.category]||'❓'}</div>
-      <div class="email-body">
-        <div class="email-sender">${esc(sender)}</div>
-        <div class="email-subj">${esc(e.subject||'(no subject)')}</div>
-        <div class="email-tags">
-          <span class="email-tag">${esc(e.account||'')}</span>
-          <span class="email-tag">${esc(e.summary||'')}</span>
-        </div>
-      </div>
-      <div class="email-time">${formatTime(e.timestamp)}</div>
-    </div>`;
-  }).join('');
-
-  // Stats
-  document.getElementById('tTotal').textContent = triageData.length;
-  document.getElementById('tTotalSub').textContent = `${new Set(triageData.map(e=>e.account)).size} accounts`;
-  document.getElementById('tRespond').textContent = triageData.filter(e=>e.category==='TO_RESPOND'||e.category==='ACTION_NEEDED').length;
-  document.getElementById('tMeetings').textContent = triageData.filter(e=>e.category==='MEETING').length;
-  document.getElementById('tDeals').textContent = triageData.filter(e=>e.category==='DEAL_OM').length;
-  document.getElementById('tInvestor').textContent = triageData.filter(e=>e.category==='INVESTOR').length;
-
-  if (triageData.length) {
-    const latest = [...triageData].sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp))[0];
-    document.getElementById('lastTriageBadge').textContent = 'Last: ' + formatTime(latest.timestamp);
-  }
-
-  // Filter counts
-  document.querySelectorAll('.filter-chip').forEach(chip => {
-    const f = chip.dataset.f;
-    const c = f === 'ALL' ? triageData.length : triageData.filter(e=>e.category===f).length;
-    let cnt = chip.querySelector('.filter-count');
-    if (c > 0) { if (!cnt) { cnt = document.createElement('span'); cnt.className='filter-count'; chip.appendChild(cnt); } cnt.textContent=c; }
-    else if (cnt) cnt.remove();
-  });
-}
-
-function setTriageFilter(f, el) {
-  triageFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderTriage();
-}
-
-function triageToTask(el) {
-  try {
-    const e = JSON.parse(el.dataset.email);
-    // Switch to workspace and prefill
-    document.querySelectorAll('.nav-tab')[0].click();
-    const sender = (e.sender||'').split('<')[0].trim().replace(/"/g,'');
-    document.getElementById('taskInput').value = `Draft a reply to this email:\n\nFrom: ${sender}\nSubject: ${e.subject}\nAccount: ${e.account}\nCategory: ${e.category}\nSummary: ${e.summary}`;
-    document.getElementById('systemPrompt').value = 'You are Cody Leivas responding to a business email. Be professional, direct, and concise.';
-    document.getElementById('systemPromptArea').style.display = 'block';
-    document.getElementById('chipSystem').classList.add('active');
-    document.getElementById('taskInput').focus();
-  } catch {}
-}
-
-function loadTriageFile() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json';
-  input.onchange = e => {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = ev => { try { triageData = JSON.parse(ev.target.result); renderTriage(); } catch { alert('Invalid JSON'); } };
-    r.readAsText(f);
-  };
-  input.click();
-}
-
-async function refreshTriage() {
-  try { const r = await fetch('triage_log.json?t='+Date.now()); triageData = await r.json(); renderTriage(); }
-  catch { loadTriageFile(); }
-}
-
-// ── Drag & Drop ──
-document.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('dropOverlay').style.display='flex'; });
-document.addEventListener('dragleave', e => { if(!e.relatedTarget) document.getElementById('dropOverlay').style.display='none'; });
-document.addEventListener('drop', e => {
-  e.preventDefault(); document.getElementById('dropOverlay').style.display='none';
-  const f = e.dataTransfer.files[0];
-  if (f?.name.endsWith('.json')) {
-    const r = new FileReader();
-    r.onload = ev => { try { triageData = JSON.parse(ev.target.result); renderTriage(); } catch {} };
-    r.readAsText(f);
-  }
-});
-
-// ── Utils ──
-function formatTime(ts) {
-  try {
-    const d = new Date(ts); const now = new Date();
-    const m = Math.floor((now-d)/60000);
-    if (m<1) return 'now'; if (m<60) return m+'m'; const h = Math.floor(m/60);
-    if (h<24) return h+'h'; return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  } catch { return ''; }
-}
-
-function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 150) + 'px'; }
-
-// ── Scheduled Jobs ──
-let jobsData = [];
-
-function renderJobs() {
-  const list = document.getElementById('jobsList');
-  const jobs = jobsData.filter(j => j.type !== 'system');
-  const sysInfo = jobsData.find(j => j.type === 'system');
-
-  // Stats
-  document.getElementById('jTotal').textContent = jobs.length;
-  document.getElementById('jActive').textContent = jobs.filter(j => j.status === 'active' || j.status === 'online').length;
-
-  const ollamaJob = jobsData.find(j => j.type === 'service' && j.name === 'Ollama');
-  if (ollamaJob) {
-    document.getElementById('jOllama').textContent = ollamaJob.status === 'online' ? 'Online' : 'Offline';
-    document.getElementById('jOllama').style.color = ollamaJob.status === 'online' ? 'var(--green)' : 'var(--red)';
-    document.getElementById('jOllamaModels').textContent = ollamaJob.models || 'No models';
-  }
-  if (sysInfo) {
-    document.getElementById('jUptime').textContent = sysInfo.uptime || '—';
-    document.getElementById('jLoad').textContent = sysInfo.loadAvg ? 'Load: ' + sysInfo.loadAvg : '—';
-  }
-
-  if (!jobs.length) {
-    list.innerHTML = '<div class="empty"><div class="icon">⏰</div><div class="title">No jobs found</div><div class="desc">Run collect_jobs.sh to generate jobs.json</div></div>';
-    return;
-  }
-
-  const TYPE_ICONS = { cron: '⏰', launchagent: '🚀', service: '🔌' };
-  const TYPE_COLORS = { cron: 'var(--orange)', launchagent: 'var(--purple)', service: 'var(--cyan)' };
-
-  list.innerHTML = jobs.map(j => {
-    const icon = TYPE_ICONS[j.type] || '⚙️';
-    const statusClass = (j.status === 'active' || j.status === 'online') ? 'done' : 'error';
-    const statusText = (j.status === 'active' || j.status === 'online') ? 'Active' : 'Inactive';
-
-    let details = '';
-    if (j.type === 'cron') {
-      details = `<div style="font-size:12px;color:var(--text-dim);margin-top:4px;">
-        <span style="font-family:monospace;background:var(--surface2);padding:2px 6px;border-radius:4px;">${esc(j.schedule)}</span>
-        <span style="margin-left:8px;color:var(--text-muted);">${esc(j.command || '')}</span>
-      </div>`;
-    } else if (j.type === 'launchagent') {
-      details = `<div style="font-size:12px;color:var(--text-dim);margin-top:4px;">
-        <span style="color:var(--text-muted);">${esc(j.label || '')}</span>
-        ${j.keepAlive ? '<span style="margin-left:8px;font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(34,197,94,0.12);color:var(--green);">KeepAlive</span>' : ''}
-        ${j.runAtLoad ? '<span style="margin-left:4px;font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(59,130,246,0.12);color:var(--accent);">RunAtLoad</span>' : ''}
-      </div>
-      ${j.program ? '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;font-family:monospace;">' + esc(j.program) + '</div>' : ''}`;
-    } else if (j.type === 'service') {
-      details = `<div style="font-size:12px;color:var(--text-dim);margin-top:4px;">
-        ${j.url ? '<span style="font-family:monospace;">' + esc(j.url) + '</span>' : ''}
-        ${j.models ? '<div style="margin-top:2px;color:var(--text-muted);">Models: ' + esc(j.models) + '</div>' : ''}
-      </div>`;
-    }
-
-    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);">
-      <div style="width:36px;height:36px;border-radius:8px;background:${j.type==='cron'?'rgba(245,158,11,0.12)':j.type==='launchagent'?'rgba(168,85,247,0.12)':'rgba(6,182,212,0.12)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${icon}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:13px;font-weight:600;">${esc(j.name)}</span>
-          <span class="task-status ${statusClass}">${statusText}</span>
-          <span style="font-size:10px;padding:1px 6px;border-radius:3px;background:var(--surface2);color:var(--text-muted);text-transform:uppercase;">${j.type}</span>
-        </div>
-        ${details}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function loadJobsFile() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json';
-  input.onchange = e => {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = ev => { try { jobsData = JSON.parse(ev.target.result); renderJobs(); } catch { alert('Invalid JSON'); } };
-    r.readAsText(f);
-  };
-  input.click();
-}
-
-async function refreshJobs() {
-  try { const r = await fetch('jobs.json?t='+Date.now()); jobsData = await r.json(); renderJobs(); }
-  catch { loadJobsFile(); }
-}
-
-// ── Settings ──
-function showSettings() {
-  document.getElementById('settingsOllamaUrl').value = OLLAMA;
-  document.getElementById('settingsCurrentUrl').textContent = OLLAMA;
-  document.getElementById('settingsModal').style.display = 'flex';
-}
-function saveOllamaUrl() {
-  const url = document.getElementById('settingsOllamaUrl').value.trim().replace(/\/+$/, '');
-  if (url) {
-    localStorage.setItem('ollamaUrl', url);
-    location.reload();
-  }
-}
-
-// ── Init ──
-checkOllama();
-setInterval(checkOllama, 30000);
-fetch('triage_log.json').then(r=>r.json()).then(d=>{triageData=d;renderTriage();}).catch(()=>{});
-fetch('jobs.json').then(r=>r.json()).then(d=>{jobsData=d;renderJobs();}).catch(()=>{});
+checkOllama();setInterval(checkOllama,30000);
+async function init(){try{const r=await fetch('triage_log.json');TD=await r.json();}catch{try{const r=await fetch(`${GH}/triage_log.json`);TD=await r.json();}catch{}}renderTriage();renderOverview();
+try{const r=await fetch('jobs.json');JD=await r.json();}catch{try{const r=await fetch(`${GH}/jobs.json`);JD=await r.json();}catch{}}renderJobs();}
+init();
 </script>
 </body>
 </html>
