@@ -111,21 +111,22 @@
       <div class="rule-card">
         <h4>✅ Stays in Inbox</h4>
         <ul>
-          <li>Emails sent directly to you</li>
-          <li>Emails where you're CC'd</li>
-          <li>Everything Ollama classifies as non-marketing</li>
-          <li>TO_RESPOND, ACTION_NEEDED, MEETING, DEAL_OM</li>
-          <li>INVESTOR, COMMENT, NOTIFICATION, INVOICE, FYI</li>
+          <li>TO_RESPOND — someone expecting a reply</li>
+          <li>ACTION_NEEDED — sign, approve, confirm</li>
+          <li>MEETING — calendar invites, scheduling</li>
+          <li>INVESTOR — LP communications</li>
+          <li>FYI — emails you're CC'd on</li>
         </ul>
       </div>
       <div class="rule-card">
         <h4>📤 Archived (Labeled Only)</h4>
         <ul>
-          <li>Anything classified MARKETING by Ollama</li>
-          <li>Anything with List-Unsubscribe header (unless CC'd)</li>
-          <li>Labeled with Fyxer "8: marketing" tag</li>
-          <li>Still findable in the label folder</li>
-          <li>Never permanently deleted</li>
+          <li>MARKETING — spam, promos, unsubscribe emails</li>
+          <li>COMMENT — thread replies, comments</li>
+          <li>NOTIFICATION — automated alerts</li>
+          <li>DEAL_OM — OMs and listings (browse in folder)</li>
+          <li>INVOICE — bills and receipts (browse in folder)</li>
+          <li>UNCLASSIFIED — anything AI isn't sure about</li>
         </ul>
       </div>
     </div>
@@ -140,12 +141,12 @@
       <tr><td class="label-emoji">🔴</td><td class="label-name">TO_RESPOND</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/To Respond</span></td><td class="inbox-yes">YES</td></tr>
       <tr><td class="label-emoji">🟠</td><td class="label-name">ACTION_NEEDED</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Action Needed</span></td><td class="inbox-yes">YES</td></tr>
       <tr><td class="label-emoji">📅</td><td class="label-name">MEETING</td><td><span class="label-fyxer">5: meeting update</span></td><td><span class="label-fyxer">AI/Meeting</span></td><td class="inbox-yes">YES</td></tr>
-      <tr><td class="label-emoji">🏢</td><td class="label-name">DEAL_OM</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Deal or OM</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">🏢</td><td class="label-name">DEAL_OM</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Deal or OM</span></td><td class="inbox-no">ARCHIVED</td></tr>
       <tr><td class="label-emoji">💰</td><td class="label-name">INVESTOR</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Investor</span></td><td class="inbox-yes">YES</td></tr>
-      <tr><td class="label-emoji">💵</td><td class="label-name">INVOICE</td><td><span class="label-fyxer">6: awaiting reply</span></td><td><span class="label-fyxer">AI/Invoice</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">💵</td><td class="label-name">INVOICE</td><td><span class="label-fyxer">6: awaiting reply</span></td><td><span class="label-fyxer">AI/Invoice</span></td><td class="inbox-no">ARCHIVED</td></tr>
       <tr><td class="label-emoji">🔵</td><td class="label-name">FYI (CC'd)</td><td><span class="label-fyxer">2: FYI</span></td><td><span class="label-fyxer">AI/FYI</span></td><td class="inbox-yes">YES</td></tr>
-      <tr><td class="label-emoji">💬</td><td class="label-name">COMMENT</td><td><span class="label-fyxer">3: comment</span></td><td><span class="label-fyxer">AI/Comment</span></td><td class="inbox-yes">YES</td></tr>
-      <tr><td class="label-emoji">🔔</td><td class="label-name">NOTIFICATION</td><td><span class="label-fyxer">4: notification</span></td><td><span class="label-fyxer">AI/Notification</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">💬</td><td class="label-name">COMMENT</td><td><span class="label-fyxer">3: comment</span></td><td><span class="label-fyxer">AI/Comment</span></td><td class="inbox-no">ARCHIVED</td></tr>
+      <tr><td class="label-emoji">🔔</td><td class="label-name">NOTIFICATION</td><td><span class="label-fyxer">4: notification</span></td><td><span class="label-fyxer">AI/Notification</span></td><td class="inbox-no">ARCHIVED</td></tr>
       <tr><td class="label-emoji">📢</td><td class="label-name">MARKETING</td><td><span class="label-fyxer">8: marketing</span></td><td><span class="label-fyxer">AI/Marketing</span></td><td class="inbox-no">ARCHIVED</td></tr>
     </table>
   </div>
