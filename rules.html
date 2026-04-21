@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leivas Email Triage — System Rules</title>
+<style>
+  :root { --bg:#0a0e17; --surface:#111827; --surface2:#1a2235; --border:#1e293b; --accent:#3b82f6; --green:#22c55e; --red:#ef4444; --orange:#f59e0b; --purple:#a855f7; --cyan:#06b6d4; --text:#e2e8f0; --dim:#94a3b8; --muted:#64748b; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:40px 20px; }
+  .container { max-width:900px; margin:0 auto; }
+  h1 { font-size:28px; font-weight:700; margin-bottom:8px; background:linear-gradient(135deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subtitle { color:var(--dim); font-size:14px; margin-bottom:40px; }
+  .section { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+  .section-title { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .badge { font-size:10px; padding:3px 8px; border-radius:12px; font-weight:600; }
+  .badge-live { background:rgba(34,197,94,0.15); color:var(--green); }
+  .badge-pending { background:rgba(245,158,11,0.15); color:var(--orange); }
+
+  .flow { display:flex; flex-direction:column; gap:12px; margin:16px 0; }
+  .flow-step { display:flex; align-items:flex-start; gap:14px; padding:14px 16px; background:var(--surface2); border-radius:10px; border-left:3px solid var(--border); }
+  .flow-step.primary { border-left-color:var(--accent); }
+  .flow-step.safety { border-left-color:var(--orange); }
+  .flow-num { width:28px; height:28px; border-radius:8px; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+  .flow-content { flex:1; }
+  .flow-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+  .flow-desc { font-size:12px; color:var(--dim); line-height:1.5; }
+
+  .rule-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+  .rule-card { padding:16px; background:var(--surface2); border-radius:10px; }
+  .rule-card h4 { font-size:13px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+  .rule-card ul { list-style:none; padding:0; }
+  .rule-card li { font-size:12px; color:var(--dim); padding:3px 0; padding-left:16px; position:relative; }
+  .rule-card li::before { content:"→"; position:absolute; left:0; color:var(--muted); }
+
+  .label-table { width:100%; border-collapse:collapse; margin:16px 0; }
+  .label-table th { text-align:left; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; padding:8px 12px; border-bottom:1px solid var(--border); }
+  .label-table td { padding:10px 12px; font-size:13px; border-bottom:1px solid var(--border); }
+  .label-table tr:last-child td { border-bottom:none; }
+  .label-emoji { font-size:16px; }
+  .label-name { font-weight:600; }
+  .label-fyxer { font-family:monospace; font-size:11px; color:var(--muted); background:var(--surface2); padding:2px 6px; border-radius:4px; }
+  .inbox-yes { color:var(--green); font-weight:600; }
+  .inbox-no { color:var(--red); font-weight:600; }
+
+  .accounts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+  .account-card { padding:12px; background:var(--surface2); border-radius:8px; }
+  .account-name { font-size:12px; font-weight:600; }
+  .account-email { font-size:11px; color:var(--muted); font-family:monospace; }
+  .account-status { font-size:10px; margin-top:4px; }
+
+  .cron-table { width:100%; border-collapse:collapse; margin:16px 0; }
+  .cron-table td { padding:8px 12px; font-size:12px; border-bottom:1px solid var(--border); }
+  .cron-table .sched { font-family:monospace; color:var(--accent); font-size:11px; }
+  .cron-table .script { font-weight:600; }
+
+  .stat-row { display:flex; gap:12px; margin:16px 0; }
+  .stat { flex:1; padding:14px; background:var(--surface2); border-radius:10px; text-align:center; }
+  .stat-val { font-size:24px; font-weight:700; }
+  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+
+  .note { font-size:12px; color:var(--muted); padding:12px 16px; background:var(--surface2); border-radius:8px; border-left:3px solid var(--orange); margin:16px 0; }
+  .note strong { color:var(--orange); }
+
+  @media (max-width:700px) { .rule-grid,.accounts { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Leivas Email Triage System</h1>
+  <p class="subtitle">Complete rule set for the AI-powered email management system running on local Ollama (qwen3:32b)</p>
+
+  <!-- CLASSIFICATION FLOW -->
+  <div class="section">
+    <div class="section-title">🧠 Classification Pipeline <span class="badge badge-live">LIVE</span></div>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:16px;">Every email goes through Ollama first. Headers are only used as a safety net after.</p>
+    <div class="flow">
+      <div class="flow-step primary">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Ollama Classification (Every Email)</div>
+          <div class="flow-desc">qwen3:32b reads the sender, subject, and snippet. Classifies into one of: TO_RESPOND, ACTION_NEEDED, MEETING, DEAL_OM, INVESTOR, COMMENT, NOTIFICATION, INVOICE, FYI, MARKETING. This is the primary decision-maker.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">CC Check Override</div>
+          <div class="flow-desc">If you're in the CC field (not To), category is set to FYI regardless of what Ollama said. CC'd emails always stay in inbox.</div>
+        </div>
+      </div>
+      <div class="flow-step safety">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Unsubscribe Header Safety Net</div>
+          <div class="flow-desc">If Ollama classified something as non-marketing BUT the email has a List-Unsubscribe header → override to MARKETING. Catches anything Ollama missed. Exception: CC'd emails keep their FYI status.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INBOX RULE -->
+  <div class="section">
+    <div class="section-title">📥 Inbox Rule <span class="badge badge-live">LIVE</span></div>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:16px;">Simple two-line rule. No VIP lists, no reputation tiers.</p>
+    <div style="background:var(--surface2);padding:16px;border-radius:10px;font-family:monospace;font-size:13px;line-height:2;">
+      <span style="color:var(--accent)">is_marketing</span> = category == "MARKETING" <span style="color:var(--muted)">or</span> (has_unsubscribe <span style="color:var(--muted)">and not</span> is_cc)<br>
+      <span style="color:var(--green)">archive</span> = is_marketing
+    </div>
+    <div class="rule-grid" style="margin-top:16px;">
+      <div class="rule-card">
+        <h4>✅ Stays in Inbox</h4>
+        <ul>
+          <li>Emails sent directly to you</li>
+          <li>Emails where you're CC'd</li>
+          <li>Everything Ollama classifies as non-marketing</li>
+          <li>TO_RESPOND, ACTION_NEEDED, MEETING, DEAL_OM</li>
+          <li>INVESTOR, COMMENT, NOTIFICATION, INVOICE, FYI</li>
+        </ul>
+      </div>
+      <div class="rule-card">
+        <h4>📤 Archived (Labeled Only)</h4>
+        <ul>
+          <li>Anything classified MARKETING by Ollama</li>
+          <li>Anything with List-Unsubscribe header (unless CC'd)</li>
+          <li>Labeled with Fyxer "8: marketing" tag</li>
+          <li>Still findable in the label folder</li>
+          <li>Never permanently deleted</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LABEL MAP -->
+  <div class="section">
+    <div class="section-title">🏷️ Label System</div>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:16px;">Every email gets TWO labels: a Fyxer numbered label + an AI/* sub-label for granularity.</p>
+    <table class="label-table">
+      <tr><th>Emoji</th><th>Category</th><th>Fyxer Label</th><th>AI Label</th><th>Inbox?</th></tr>
+      <tr><td class="label-emoji">🔴</td><td class="label-name">TO_RESPOND</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/To Respond</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">🟠</td><td class="label-name">ACTION_NEEDED</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Action Needed</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">📅</td><td class="label-name">MEETING</td><td><span class="label-fyxer">5: meeting update</span></td><td><span class="label-fyxer">AI/Meeting</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">🏢</td><td class="label-name">DEAL_OM</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Deal or OM</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">💰</td><td class="label-name">INVESTOR</td><td><span class="label-fyxer">1: to respond</span></td><td><span class="label-fyxer">AI/Investor</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">💵</td><td class="label-name">INVOICE</td><td><span class="label-fyxer">6: awaiting reply</span></td><td><span class="label-fyxer">AI/Invoice</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">🔵</td><td class="label-name">FYI (CC'd)</td><td><span class="label-fyxer">2: FYI</span></td><td><span class="label-fyxer">AI/FYI</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">💬</td><td class="label-name">COMMENT</td><td><span class="label-fyxer">3: comment</span></td><td><span class="label-fyxer">AI/Comment</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">🔔</td><td class="label-name">NOTIFICATION</td><td><span class="label-fyxer">4: notification</span></td><td><span class="label-fyxer">AI/Notification</span></td><td class="inbox-yes">YES</td></tr>
+      <tr><td class="label-emoji">📢</td><td class="label-name">MARKETING</td><td><span class="label-fyxer">8: marketing</span></td><td><span class="label-fyxer">AI/Marketing</span></td><td class="inbox-no">ARCHIVED</td></tr>
+    </table>
+  </div>
+
+  <!-- DRAFT REPLIES -->
+  <div class="section">
+    <div class="section-title">✏️ Auto-Draft Replies <span class="badge badge-pending">NEEDS RE-AUTH</span></div>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h4>When Drafts Are Created</h4>
+        <ul>
+          <li>Only for TO_RESPOND emails</li>
+          <li>Uses voice profile from 283 analyzed sent emails</li>
+          <li>Draft saved to Gmail Drafts in the original thread</li>
+          <li>Appears in Gmail ready to review and send</li>
+        </ul>
+      </div>
+      <div class="rule-card">
+        <h4>When Drafts Are NOT Created</h4>
+        <ul>
+          <li>ACTION_NEEDED (sign/approve — no written reply needed)</li>
+          <li>INVESTOR (needs careful manual reply)</li>
+          <li>MEETING (just accept/decline)</li>
+          <li>Anything classified as marketing</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLACK -->
+  <div class="section">
+    <div class="section-title">💬 Slack Notifications</div>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h4>Hourly Digest</h4>
+        <ul>
+          <li>Batches all triage results into one message per hour</li>
+          <li>Posts to #ai-triage (private, just you)</li>
+          <li>Shows totals: emails processed, archived, drafts created</li>
+          <li>Sorted by priority within each account</li>
+        </ul>
+      </div>
+      <div class="rule-card">
+        <h4>Action Reports (Every 30 min)</h4>
+        <ul>
+          <li>Auto-unsubscribes (senders with 5+ marketing hits)</li>
+          <li>Smart forwarding alerts (wrong inbox detection)</li>
+          <li>Snooze reminders (unanswered 24h+ TO_RESPOND)</li>
+          <li>Contact enrichment (unknown business domain senders)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div class="section">
+    <div class="section-title">📧 Email Accounts</div>
+    <div class="accounts">
+      <div class="account-card"><div class="account-name">Personal</div><div class="account-email">leivas.cody@gmail.com</div><div class="account-status" style="color:var(--green)">● Active</div></div>
+      <div class="account-card"><div class="account-name">Bluebird CRE</div><div class="account-email">cleivas@bluebirdcre.co</div><div class="account-status" style="color:var(--green)">● Active</div></div>
+      <div class="account-card"><div class="account-name">FCHS</div><div class="account-email">cody@fchomesale.com</div><div class="account-status" style="color:var(--green)">● Active</div></div>
+      <div class="account-card"><div class="account-name">Capistrano</div><div class="account-email">cody@capistranore.com</div><div class="account-status" style="color:var(--green)">● Active</div></div>
+      <div class="account-card"><div class="account-name">Leviathan</div><div class="account-email">cleivas@leviathanacq.com</div><div class="account-status" style="color:var(--orange)">● Needs auth</div></div>
+      <div class="account-card"><div class="account-name">Team Summit (Outlook)</div><div class="account-email">cleivas@teamsummitre.com</div><div class="account-status" style="color:var(--green)">● Forwarding → Bluebird</div></div>
+    </div>
+  </div>
+
+  <!-- CRON SCHEDULE -->
+  <div class="section">
+    <div class="section-title">⏰ Cron Schedule</div>
+    <table class="cron-table">
+      <tr><td class="sched">*/5 7-22 * * 1-5</td><td class="script">triage.py</td><td style="color:var(--dim)">Classify, label, archive, draft — every 5 min</td></tr>
+      <tr><td class="sched">*/5 7-22 * * 1-5</td><td class="script">derek.py</td><td style="color:var(--dim)">Bluebird analyst — OM analysis, underwriting</td></tr>
+      <tr><td class="sched">*/5 7-22 * * 1-5</td><td class="script">dashboard update</td><td style="color:var(--dim)">Push triage data + jobs to GitHub Pages</td></tr>
+      <tr><td class="sched">*/30 7-22 * * 1-5</td><td class="script">email_actions.py</td><td style="color:var(--dim)">Unsubscribe, forward, snooze, enrich</td></tr>
+      <tr><td class="sched">0 7 * * 1-5</td><td class="script">briefing.py</td><td style="color:var(--dim)">Morning briefing → Slack</td></tr>
+      <tr><td class="sched">0 17 * * 5</td><td class="script">weekly_report.py</td><td style="color:var(--dim)">Friday weekly report → Slack</td></tr>
+    </table>
+  </div>
+
+  <!-- INFRA -->
+  <div class="section">
+    <div class="section-title">🖥️ Infrastructure</div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val">qwen3:32b</div><div class="stat-label">Ollama Model</div></div>
+      <div class="stat"><div class="stat-val">M4 Pro</div><div class="stat-label">48GB Mac</div></div>
+      <div class="stat"><div class="stat-val">0.0.0.0</div><div class="stat-label">Ollama Host</div></div>
+      <div class="stat"><div class="stat-val">100.108.61.55</div><div class="stat-label">Tailscale IP</div></div>
+    </div>
+    <div class="note"><strong>Key setting:</strong> Ollama must use <code>think: false</code> in the /api/chat endpoint. Without this, qwen3:32b returns empty content (all output goes to thinking tokens).</div>
+  </div>
+
+  <p style="text-align:center;color:var(--muted);font-size:11px;margin-top:40px;">Last updated: April 21, 2026 · <a href="https://leivascody.github.io/ai-command-center/" style="color:var(--accent);text-decoration:none;">Dashboard</a> · <a href="https://github.com/Leivascody/ai-command-center" style="color:var(--accent);text-decoration:none;">GitHub</a></p>
+</div>
+</body>
+</html>
