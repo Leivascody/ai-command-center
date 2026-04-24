@@ -1,22 +1,6 @@
 [
   {
     "account": "FCHS",
-    "sender": "Verizon Wireless <no-reply@customer.verizon.com>",
-    "subject": "This iPhone 16 offer is pretty great. And it\u2019s just for customers like you.",
-    "category": "MARKETING",
-    "summary": "Unsubscribe header override \u2014 HTTPConnectionPool(host='localhost', port=11434): ",
-    "priority": 0,
-    "labeled": true,
-    "archived": true,
-    "is_cc": false,
-    "draft_created": false,
-    "classification_method": "ollama",
-    "mass_signals": 1,
-    "unsubscribe_override": true,
-    "timestamp": "2026-04-22T02:52:22.959210+00:00"
-  },
-  {
-    "account": "FCHS",
     "sender": "\"Iran Shock Hits - Jacob Davis | FIU\" <expert@research.firstinvestmentupdates.com>",
     "subject": "Caught On Camera: Iran Escalation Just Changed Everything  \u2215  Monday, April 20, 2026 ",
     "category": "MARKETING",
@@ -16508,5 +16492,23 @@
     "mass_signals": 2,
     "unsubscribe_override": true,
     "timestamp": "2026-04-23T14:15:21.105912+00:00"
+  },
+  {
+    "account": "FCHS",
+    "message_id": "19dbab67163f05e2",
+    "thread_id": "19dbab67163f05e2",
+    "sender": "RentRedi Team <team@rentredi.com>",
+    "subject": "Here's the scoop: What tenant screening looks like in 2026",
+    "category": "MARKETING",
+    "summary": "Promotional webinar invite about tenant screening trends.",
+    "priority": 0,
+    "labeled": true,
+    "archived": true,
+    "is_cc": false,
+    "draft_created": false,
+    "classification_method": "ollama",
+    "mass_signals": 2,
+    "unsubscribe_override": true,
+    "timestamp": "2026-04-23T14:25:18.387543+00:00"
   }
 ]
