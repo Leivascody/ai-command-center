@@ -1,0 +1,59 @@
+{
+  "date": "2026-04-24",
+  "weather": {
+    "high": 88,
+    "low": 57,
+    "conditions": "AM low clouds/fog, then partly sunny — start of extended heat wave"
+  },
+  "rates": {
+    "treasury_5y": 4.15,
+    "treasury_10y": 4.30,
+    "treasury_30y": 4.75,
+    "mortgage_30y": 6.23,
+    "sofr": 3.63
+  },
+  "markets": {
+    "sp500": 7108.40,
+    "sp500_change": "-0.41%",
+    "dow": 49310.32,
+    "dow_change": "-0.36%"
+  },
+  "deal_flow": [
+    {
+      "market": "Chicago, IL",
+      "description": "186 industrial properties actively listed on LoopNet — new inventory across O'Hare submarket and I-55 corridor",
+      "url": "https://www.loopnet.com/search/industrial-properties/chicago-il/for-sale/"
+    },
+    {
+      "market": "Indianapolis, IN",
+      "description": "65 industrial properties for sale on LoopNet — strong activity in Plainfield/Mt. Comfort submarkets",
+      "url": "https://www.loopnet.com/search/industrial-properties/indianapolis-in/for-sale/"
+    },
+    {
+      "market": "Kansas City, MO/KS",
+      "description": "40 MO + 15 KS industrial listings — strategic 2–3 day ground reach to most US markets",
+      "url": "https://www.crexi.com/properties/MO/Kansas-City/Industrial"
+    },
+    {
+      "market": "Cincinnati, OH",
+      "description": "Active industrial listings on Crexi/LoopNet — watch Northern KY/CVG airport submarket",
+      "url": "https://www.loopnet.com/search/industrial-properties/cincinnati-oh/for-sale/"
+    },
+    {
+      "market": "Des Moines, IA",
+      "description": "Industrial inventory available via Crexi/LoopNet — Ankeny and I-80 corridor remain tightest submarkets",
+      "url": "https://www.loopnet.com/search/industrial-properties/des-moines-ia/for-sale/"
+    },
+    {
+      "market": "Milwaukee, WI",
+      "description": "Industrial listings active on LoopNet/Crexi — strength in Menomonee Valley and I-94 corridor",
+      "url": "https://www.loopnet.com/search/industrial-properties/milwaukee-wi/for-sale/"
+    },
+    {
+      "market": "Omaha, NE",
+      "description": "Industrial listings on Crexi/LoopNet — Sarpy County continues to drive new absorption",
+      "url": "https://www.loopnet.com/search/industrial-properties/omaha-ne/for-sale/"
+    }
+  ],
+  "quote": "The best investment on earth is earth. — Louis Glickman"
+}
