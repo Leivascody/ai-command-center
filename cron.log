@@ -1605,3 +1605,6 @@ fatal: could not read Username for 'https://github.com': Device not configured
 [main 315538a] Auto-update dashboard data
  2 files changed, 4 insertions(+), 1 deletion(-)
 fatal: unable to access 'https://github.com/Leivascody/ai-command-center.git/': Resolving timed out after 483416 milliseconds
+[main 57d8d80] Auto-update dashboard data
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+fatal: could not read Username for 'https://github.com': Device not configured
