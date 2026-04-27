@@ -1,59 +1,16 @@
 {
-  "date": "2026-04-24",
-  "weather": {
-    "high": 88,
-    "low": 57,
-    "conditions": "AM low clouds/fog, then partly sunny — start of extended heat wave"
-  },
-  "rates": {
-    "treasury_5y": 4.15,
-    "treasury_10y": 4.30,
-    "treasury_30y": 4.75,
-    "mortgage_30y": 6.23,
-    "sofr": 3.63
-  },
-  "markets": {
-    "sp500": 7108.40,
-    "sp500_change": "-0.41%",
-    "dow": 49310.32,
-    "dow_change": "-0.36%"
-  },
+  "date": "2026-04-27",
+  "weather": {"high": 88, "low": 60, "conditions": "Morning low clouds and fog, then partly sunny — start of an extended heat wave"},
+  "rates": {"treasury_5y": 4.05, "treasury_10y": 4.31, "treasury_30y": 4.91, "mortgage_30y": 6.23, "sofr": 3.63},
+  "markets": {"sp500": 7165.08, "sp500_change": "+0.8%", "dow": 49230.71, "dow_change": "-0.16%"},
   "deal_flow": [
-    {
-      "market": "Chicago, IL",
-      "description": "186 industrial properties actively listed on LoopNet — new inventory across O'Hare submarket and I-55 corridor",
-      "url": "https://www.loopnet.com/search/industrial-properties/chicago-il/for-sale/"
-    },
-    {
-      "market": "Indianapolis, IN",
-      "description": "65 industrial properties for sale on LoopNet — strong activity in Plainfield/Mt. Comfort submarkets",
-      "url": "https://www.loopnet.com/search/industrial-properties/indianapolis-in/for-sale/"
-    },
-    {
-      "market": "Kansas City, MO/KS",
-      "description": "40 MO + 15 KS industrial listings — strategic 2–3 day ground reach to most US markets",
-      "url": "https://www.crexi.com/properties/MO/Kansas-City/Industrial"
-    },
-    {
-      "market": "Cincinnati, OH",
-      "description": "Active industrial listings on Crexi/LoopNet — watch Northern KY/CVG airport submarket",
-      "url": "https://www.loopnet.com/search/industrial-properties/cincinnati-oh/for-sale/"
-    },
-    {
-      "market": "Des Moines, IA",
-      "description": "Industrial inventory available via Crexi/LoopNet — Ankeny and I-80 corridor remain tightest submarkets",
-      "url": "https://www.loopnet.com/search/industrial-properties/des-moines-ia/for-sale/"
-    },
-    {
-      "market": "Milwaukee, WI",
-      "description": "Industrial listings active on LoopNet/Crexi — strength in Menomonee Valley and I-94 corridor",
-      "url": "https://www.loopnet.com/search/industrial-properties/milwaukee-wi/for-sale/"
-    },
-    {
-      "market": "Omaha, NE",
-      "description": "Industrial listings on Crexi/LoopNet — Sarpy County continues to drive new absorption",
-      "url": "https://www.loopnet.com/search/industrial-properties/omaha-ne/for-sale/"
-    }
+    {"market": "Chicago, IL", "description": "186 industrial listings active; avg $145/SF — strong inventory in Southwest (39) and Downtown (29) submarkets", "url": "https://www.loopnet.com/search/industrial-properties/chicago-il/for-sale/"},
+    {"market": "Indianapolis, IN", "description": "65 industrial listings; avg $120/SF, ~50,978 SF average size — value play vs. Chicago", "url": "https://www.loopnet.com/search/industrial-properties/indianapolis-in/for-sale/"},
+    {"market": "Kansas City, MO", "description": "7.4M SF under construction; recent BTS leases include Church & Dwight (553K SF) and Smart Warehousing (548K SF)", "url": "https://www.crexi.com/properties/MO/Kansas_City/Industrial"},
+    {"market": "Cincinnati, OH", "description": "Active industrial listings on Crexi — Midwest logistics corridor positioning", "url": "https://www.crexi.com/properties/OH/Cincinnati/Industrial"},
+    {"market": "Milwaukee, WI", "description": "~2.1M SF of industrial warehouse on market; range 850 SF to 780,000 SF", "url": "https://www.commercialsearch.com/for-sale/industrial/us/wi/milwaukee/"},
+    {"market": "Omaha, NE", "description": "~1.28M SF on market; assets from 4,000 to 337,334 SF", "url": "https://www.commercialsearch.com/for-sale/industrial/us/ne/omaha/"},
+    {"market": "Des Moines, IA", "description": "~743K SF on market; range 6,955 SF to 422,212 SF", "url": "https://www.commercialsearch.com/for-sale/industrial/us/ia/des-moines/"}
   ],
-  "quote": "The best investment on earth is earth. — Louis Glickman"
+  "quote": "The best investment on Earth is earth. — Louis Glickman"
 }
