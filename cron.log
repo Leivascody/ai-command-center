@@ -2604,3 +2604,6 @@ fatal: could not read Username for 'https://github.com': Device not configured
 [main ea6a7f4] Auto-update dashboard data
  2 files changed, 4 insertions(+), 1 deletion(-)
 fatal: unable to access 'https://github.com/Leivascody/ai-command-center.git/': Recv failure: Connection reset by peer
+[main 497898a] Auto-update dashboard data
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+fatal: could not read Username for 'https://github.com': Device not configured
