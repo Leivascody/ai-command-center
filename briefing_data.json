@@ -1,59 +1,59 @@
 {
-  "date": "2026-04-28",
+  "date": "2026-04-30",
   "weather": {
     "high": 88,
-    "low": 60,
-    "conditions": "Morning low clouds and fog, then partly sunny — start of an extended heat wave"
+    "low": 50,
+    "conditions": "Low clouds and fog AM, partly sunny PM — start of an extended heat wave; 30% chance of showers overnight"
   },
   "rates": {
-    "treasury_5y": 3.95,
-    "treasury_10y": 4.32,
-    "treasury_30y": 4.78,
-    "mortgage_30y": 6.40,
+    "treasury_5y": 3.94,
+    "treasury_10y": 4.42,
+    "treasury_30y": 4.97,
+    "mortgage_30y": 6.29,
     "sofr": 3.66
   },
   "markets": {
-    "sp500": 7173.91,
-    "sp500_change": "+0.12%",
-    "dow": 49167.79,
-    "dow_change": "-0.13%"
+    "sp500": 7135.95,
+    "sp500_change": "-0.04%",
+    "dow": 48861.81,
+    "dow_change": "-0.57%"
   },
   "deal_flow": [
     {
       "market": "Chicago, IL",
-      "description": "186 industrial properties listed for sale across the metro (29 Downtown, 39 Southwest)",
+      "description": "186 industrial properties for sale on LoopNet — deepest Midwest inventory; watch O'Hare submarket and I-55/I-80 logistics corridor for new last-mile listings",
       "url": "https://www.loopnet.com/search/industrial-properties/chicago-il/for-sale/"
     },
     {
       "market": "Indianapolis, IN",
-      "description": "65 industrial properties for sale across the Indianapolis market",
+      "description": "65 industrial listings, avg ~$120/SF, avg size ~50,978 SF — strong mid-size warehouse activity along I-70/I-65",
       "url": "https://www.loopnet.com/search/industrial-properties/indianapolis-in/for-sale/"
     },
     {
-      "market": "Kansas City, MO",
-      "description": "69 industrial properties for sale in the Kansas City market",
+      "market": "Kansas City, MO/KS",
+      "description": "40 industrial listings near KCK, avg ~$126/SF, avg size ~26,085 SF — flex/light industrial dominates new-to-market product",
       "url": "https://www.loopnet.com/search/industrial-properties/kansas-city-mo/for-sale/"
     },
     {
       "market": "Cincinnati, OH",
-      "description": "Active inventory of manufacturing and warehouse/distribution assets listed for sale",
-      "url": "https://www.loopnet.com/search/industrial-properties/cincinnati-oh/for-sale/"
+      "description": "Active Crexi industrial pipeline — northern KY/Cincinnati submarkets continue to benefit from CVG air-cargo and I-75 distribution demand",
+      "url": "https://www.crexi.com/properties/OH/Cincinnati/Industrial"
     },
     {
       "market": "Des Moines, IA",
-      "description": "Warehouse/distribution centers including leased investor deals and cold-storage opportunities",
+      "description": "Crexi showing steady warehouse/flex inventory; downtown and west suburbs (West Des Moines, Grimes) remain the most-trafficked submarkets",
       "url": "https://www.crexi.com/properties/IA/Des_Moines/Industrial"
     },
     {
       "market": "Milwaukee, WI",
-      "description": "Mixed industrial inventory across manufacturing and flex product types",
+      "description": "Industrial pipeline on LoopNet — Menomonee Valley and SE WI corridor continue to see redevelopment plays",
       "url": "https://www.loopnet.com/search/industrial-properties/milwaukee-wi/for-sale/"
     },
     {
       "market": "Omaha, NE",
-      "description": "20 industrial properties on LoopNet plus warehouse and flex listings on Crexi",
+      "description": "Crexi listings strong in Sarpy County and along I-80; smaller-bay industrial remains tightly held",
       "url": "https://www.crexi.com/properties/NE/Omaha/Industrial"
     }
   ],
-  "quote": "The best investment on Earth is earth. — Louis Glickman"
+  "quote": "Opportunities don't happen. You create them. — Chris Grosser"
 }
