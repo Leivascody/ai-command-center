@@ -3587,3 +3587,6 @@ See "git help gc" for manual housekeeping.
 [main 021608c] Auto-update dashboard data
  2 files changed, 6 insertions(+), 1 deletion(-)
 fatal: could not read Username for 'https://github.com': Device not configured
+[main 2cf6a18] Auto-update dashboard data
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+fatal: could not read Username for 'https://github.com': Device not configured
